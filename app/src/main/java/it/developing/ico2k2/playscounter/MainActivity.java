@@ -5,7 +5,14 @@ import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
+import android.os.Build;
 import android.os.Bundle;
+import android.view.ViewGroup;
+import android.widget.ExpandableListAdapter;
+import android.widget.ExpandableListView;
+import android.widget.ScrollView;
+import android.widget.SimpleAdapter;
+import android.widget.SimpleExpandableListAdapter;
 import android.widget.TextView;
 
 /*
@@ -14,8 +21,10 @@ AudioManager.isMusicActive();
 
  */
 
-public class MainActivity extends Activity implements BroadcastReceiver
+public class MainActivity extends Activity
 {
+    BroadcastReceiver b;
+
     public static final String[] filters =
     {
         "com.android.music.metachanged",
@@ -53,16 +62,31 @@ public class MainActivity extends Activity implements BroadcastReceiver
     public void onCreate(Bundle savedInstanceState)
     {
         super.onCreate(savedInstanceState);
-        TextView textView = new TextView(this);
-        setContentView(textView);
-        textView.setSingleLine(false);
-        IntentFilter filter = new IntentFilter()
-        registerReceiver(this,filters);
+        final ExpandableListView list = new ExpandableListView(this);
+        list.setLayoutParams(new ViewGroup.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT,ViewGroup.LayoutParams.MATCH_PARENT));
+        setContentView(list);
+        IntentExpandableListAdapter adapter = new IntentExpandableListAdapter(this);
+        adapter.add(new Intent(Intent.ACTION_SEND));
+        list.setAdapter(adapter);
+        b = new BroadcastReceiver()
+        {
+            @Override
+            public void onReceive(Context context,Intent intent)
+            {
+                adapter.add(intent);
+                adapter.notifyDataSetChanged();
+            }
+        };
+        IntentFilter filter = new IntentFilter();
+        for(String s : filters)
+            filter.addAction(s);
+        registerReceiver(b,filter);
     }
 
     @Override
-    public void onReceive(Context context,Intent intent)
+    public void onDestroy()
     {
-
+        super.onDestroy();
+        unregisterReceiver(b);
     }
 }

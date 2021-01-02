@@ -1,3 +1,10 @@
 <resources>
     <string name="app_name">Plays counter</string>
+    <string name="not_supported">Not supported</string>
+    <string name="categories_count">There are %d categories</string>
+    <string name="extras_count">There are %d extras</string>
+    <string name="extras_key">Extra key: %s</string>
+    <string name="extras_type">Extra type: %s</string>
+    <string name="extras_content">Extra content:\n%s</string>
+    <string name="null_">null</string>
 </resources>

@@ -22,10 +22,6 @@
 
         </activity>
 
-        <receiver
-            android:name=".MusicNotificationReceiver"
-            android:exported="true"/>
-
     </application>
 
 </manifest>
