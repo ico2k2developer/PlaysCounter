@@ -8,7 +8,7 @@ android {
 
     defaultConfig {
         applicationId "it.developing.ico2k2.playscounter"
-        minSdkVersion 10
+        minSdkVersion 14
         targetSdkVersion 30
         versionCode 1
         versionName "1.0"
@@ -16,7 +16,7 @@ android {
 
     buildTypes {
         release {
-            minifyEnabled false
+            minifyEnabled true
             proguardFiles getDefaultProguardFile('proguard-android-optimize.txt'), 'proguard-rules.pro'
         }
     }
@@ -26,6 +26,10 @@ android {
     }
 }
 
-dependencies {
+dependencies
+{
+    implementation "androidx.room:room-runtime:2.2.6"
+    annotationProcessor "androidx.room:room-compiler:2.2.6"
+    implementation 'androidx.preference:preference:1.1.1'
 
 }

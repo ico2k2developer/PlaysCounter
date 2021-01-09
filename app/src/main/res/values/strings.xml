@@ -1,10 +1,20 @@
 <resources>
     <string name="app_name">Plays counter</string>
     <string name="not_supported">Not supported</string>
+    <string name="clip_data">Clip data: %s</string>
+    <string name="component">Component: %s</string>
+    <string name="data">Data: %s</string>
+    <string name="flags">Flags: %d (0x%s)</string>
+    <string name="package_">Package: %s</string>
+    <string name="scheme">Scheme: %s</string>
+    <string name="type">Type: %s</string>
     <string name="categories_count">There are %d categories</string>
     <string name="extras_count">There are %d extras</string>
     <string name="extras_key">Extra key: %s</string>
     <string name="extras_type">Extra type: %s</string>
-    <string name="extras_content">Extra content:\n%s</string>
+    <string name="extras_content">Extra content: %s</string>
     <string name="null_">null</string>
+    <string name="refresh">Refresh</string>
+    <string name="db_clear">Clear database</string>
+    <string name="song_desc">%s, %s</string>
 </resources>

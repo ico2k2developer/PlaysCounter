@@ -19,7 +19,6 @@ public class IntentExpandableListAdapter extends BaseExpandableListAdapter
 {
     private enum Childs
     {
-        ACTION,
         CATEGORIES,
         CLIP_DATA,
         COMPONENT,
@@ -85,11 +84,6 @@ public class IntentExpandableListAdapter extends BaseExpandableListAdapter
         Intent intent = (Intent)getGroup(groupPosition);
         switch(Childs.values()[childPosition])
         {
-            case ACTION:
-            {
-                s.append(intent.getAction());
-                break;
-            }
             case CATEGORIES:
             {
                 Set<String> set = intent.getCategories();
@@ -108,43 +102,44 @@ public class IntentExpandableListAdapter extends BaseExpandableListAdapter
             }
             case CLIP_DATA:
             {
+                String t;
                 if(Build.VERSION.SDK_INT >= Build.VERSION_CODES.JELLY_BEAN)
-                    s.append((intent.getClipData() == null ? n : intent.getClipData().toString()));
+                    t = (intent.getClipData() == null ? n : intent.getClipData().toString());
                 else
-                    s.append(context.getString(R.string.not_supported));
+                    t = context.getString(R.string.not_supported);
+                s.append(String.format(context.getString(R.string.clip_data),t));
                 break;
             }
             case COMPONENT:
             {
-                s.append(intent.getComponent() == null ? n : intent.getComponent().toString());
+                s.append(String.format(context.getString(R.string.component),
+                        intent.getComponent() == null ? n : intent.getComponent().toString()));
                 break;
             }
             case DATA:
             {
-                s.append(intent.getDataString());
+                s.append(String.format(context.getString(R.string.data),intent.getDataString()));
                 break;
             }
             case FLAGS:
             {
-                s.append(intent.getFlags());
-                s.append(" (0x");
-                s.append(Integer.toHexString(intent.getFlags()));
-                s.append(")");
+                s.append(String.format(context.getString(R.string.flags),
+                        intent.getFlags(),Integer.toHexString(intent.getFlags())));
                 break;
             }
             case PACKAGE:
             {
-                s.append(intent.getPackage());
+                s.append(String.format(context.getString(R.string.package_),intent.getPackage()));
                 break;
             }
             case SCHEME:
             {
-                s.append(intent.getScheme());
+                s.append(String.format(context.getString(R.string.scheme),intent.getScheme()));
                 break;
             }
             case TYPE:
             {
-                s.append(intent.getType());
+                s.append(String.format(context.getString(R.string.type),intent.getType()));
                 break;
             }
             case EXTRAS:
@@ -160,9 +155,9 @@ public class IntentExpandableListAdapter extends BaseExpandableListAdapter
                         o = extras.get(key);
                         s.append("\n\n");
                         s.append(String.format(context.getString(R.string.extras_key),key));
-                        s.append("\n\n");
+                        s.append("\n");
                         s.append(String.format(context.getString(R.string.extras_type),o == null ? null : o.getClass()));
-                        s.append("\n\n");
+                        s.append("\n");
                         s.append(String.format(context.getString(R.string.extras_content),o == null ? null : o.toString()));
                     }
                 }

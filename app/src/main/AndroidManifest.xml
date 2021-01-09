@@ -1,6 +1,45 @@
 <?xml version="1.0" encoding="utf-8"?>
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
     package="it.developing.ico2k2.playscounter">
+
+    <uses-sdk tools:overrideLibrary="
+    androidx.room,
+    androidx.sqlite.db.framework,
+    androidx.sqlite.db,
+    androidx.arch.core,
+    org.dbtools.android.room.sqliteorg,
+    org.sqlite,
+    androidx.appcompat,
+    androidx.fragment,
+    androidx.vectordrawable,
+    androidx.legacy.coreui,
+    androidx.legacy.coreutils,
+    androidx.loader,
+    androidx.lifecycle.livedata,
+    androidx.lifecycle.livedata.core,
+    androidx.lifecycle.ktx,
+    androidx.viewpager,
+    androidx.coordinatorlayout,
+    androidx.drawerlayout,
+    androidx.slidingpanelayout,
+    androidx.customview,
+    androidx.swiperefreshlayout,
+    androidx.asynclayoutinflater,
+    androidx.core,
+    androidx.lifecycle,
+    androidx.versionedparcelable,
+    androidx.cursoradapter,
+    androidx.documentfile,
+    androidx.localbroadcastmanager,
+    androidx.print,
+    androidx.lifecycle.viewmodel,
+    androidx.interpolator,
+    androidx.preference,
+    androidx.activity,
+    androidx.lifecycle.viewmodel.savedstate,
+
+"/>
 
     <application
         android:allowBackup="true"
@@ -21,6 +60,25 @@
             </intent-filter>
 
         </activity>
+
+        <service
+            android:name=".NotificationListener"
+            android:permission="android.permission.BIND_NOTIFICATION_LISTENER_SERVICE">
+            <intent-filter>
+                <action android:name="android.service.notification.NotificationListenerService" />
+            </intent-filter>
+        </service>
+
+        <service
+            android:name=".IntentListener"/>
+
+        <receiver
+            android:name=".BootListener"
+            android:exported="true">
+            <intent-filter>
+                <action android:name="android.intent.action.BOOT_COMPLETED"/>
+            </intent-filter>
+        </receiver>
 
     </application>
 
