@@ -1,20 +1,16 @@
 <resources>
     <string name="app_name">Plays counter</string>
-    <string name="not_supported">Not supported</string>
-    <string name="clip_data">Clip data: %s</string>
-    <string name="component">Component: %s</string>
-    <string name="data">Data: %s</string>
-    <string name="flags">Flags: %d (0x%s)</string>
-    <string name="package_">Package: %s</string>
-    <string name="scheme">Scheme: %s</string>
-    <string name="type">Type: %s</string>
-    <string name="categories_count">There are %d categories</string>
-    <string name="extras_count">There are %d extras</string>
-    <string name="extras_key">Extra key: %s</string>
-    <string name="extras_type">Extra type: %s</string>
-    <string name="extras_content">Extra content: %s</string>
-    <string name="null_">null</string>
     <string name="refresh">Refresh</string>
     <string name="db_clear">Clear database</string>
     <string name="song_desc">%s, %s</string>
+    <string name="song_desc_sub">Played %d time</string>
+    <string name="song_desc_sub_p">Played %d times</string>
+    <string name="notification_foreground">Checking for playing songs</string>
+    <string name="notification_foreground_desc">We are checking which songs you play most!</string>
+    <string name="main_notification_channel">Background notification</string>
+    <string name="permission_notification_message">Some media apps require notification access in order to identify the playing songs. Do you want to go the Settings page to grant the permission?</string>
+    <string name="permission_notification_menu">Grant permission</string>
+    <string name="permission_notification_show_settings">Settings</string>
+    <string name="show_never_again">Show never again</string>
+    <string name="ok">OK</string>
 </resources>

@@ -1,3 +1,7 @@
 <resources>
-    <style name="AppTheme" parent="android:Theme.Material"/>
+    <style name="AppTheme" parent="android:Theme.Material">
+        <item name="android:toolbarStyle">@android:style/Widget.Material.Light.ActionBar</item>
+        <item name="android:colorPrimary">@color/colorPrimary</item>
+        <item name="android:colorPrimaryDark">@color/colorPrimaryDark</item>
+    </style>
 </resources>

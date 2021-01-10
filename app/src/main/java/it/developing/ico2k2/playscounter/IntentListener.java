@@ -1,14 +1,17 @@
 package it.developing.ico2k2.playscounter;
 
+import android.annotation.TargetApi;
 import android.app.Service;
 import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
 import android.content.SharedPreferences;
+import android.os.Build;
 import android.os.IBinder;
 import android.util.Log;
 
+import androidx.annotation.RequiresApi;
 import androidx.preference.PreferenceManager;
 
 import java.util.List;
@@ -18,7 +21,9 @@ import it.developing.ico2k2.playscounter.database.DatabaseClient;
 import it.developing.ico2k2.playscounter.database.Song;
 import it.developing.ico2k2.playscounter.database.SongDao;
 
+import static it.developing.ico2k2.playscounter.Utils.DATABASE_SONGS;
 import static it.developing.ico2k2.playscounter.Utils.examineBundle;
+import static it.developing.ico2k2.playscounter.Utils.examineIntent;
 
 public class IntentListener extends Service
 {
@@ -27,6 +32,7 @@ public class IntentListener extends Service
 
     public static final String EXTRA_TITLE = "track";
     public static final String EXTRA_ARTIST = "artist";
+    public static final String EXTRA_PLAYING = "playing";
 
     private static final String[] FILTERS =
     {
@@ -179,7 +185,7 @@ public class IntentListener extends Service
         ACTION_NOTIFICATION,
     };
 
-    private BroadcastReceiver receiver;
+    private Receiver receiver;
     private Database database;
 
     @Override
@@ -191,44 +197,60 @@ public class IntentListener extends Service
     public void onCreate()
     {
         super.onCreate();
-        database = DatabaseClient.getInstance(this,"database");
-        final SharedPreferences prefs = PreferenceManager.getDefaultSharedPreferences(this);
-        receiver = new BroadcastReceiver(){
-
-            @Override
-            public void onReceive(Context context,Intent intent){
-                SongDao dao = database.dao();
-                String title = intent.getStringExtra(EXTRA_TITLE);
-                String artist = intent.getStringExtra(EXTRA_ARTIST);
-                Log.d(getClass().getSimpleName(),examineBundle(intent.getExtras()));
-                if(title != null && artist != null)
-                {
-                    if(!Song.generateId(title,artist).equals(prefs.getString(getString(R.string.key_song_last),"")))
-                    {
-                        new Thread(new Runnable(){
-                            @Override
-                            public void run(){
-                                List<Song> results = dao.findById(Song.generateId(title,artist));
-                                Song song;
-                                if(results.size() > 0)
-                                    song = results.get(0);
-                                else
-                                    song = new Song(title,artist);
-                                song.setPlaysCount(song.getPlaysCount() + 1);
-                                dao.insertAll(song);
-                            }
-                        }).start();
-                        prefs.edit().putString(getString(R.string.key_song_last),Song.generateId(title,artist)).apply();
-                    }
-                    else
-                        Log.d(getClass().getSimpleName(),"Song already playing!");
-                }
-            }
-        };
+        manageNotification(true);
+        database = DatabaseClient.getInstance(this,DATABASE_SONGS);
+        receiver = new Receiver();
         IntentFilter filter = new IntentFilter();
         for(String action : FILTERS)
             filter.addAction(action);
         registerReceiver(receiver,filter);
+    }
+
+    class Receiver extends BroadcastReceiver
+    {
+        final SharedPreferences prefs = PreferenceManager.getDefaultSharedPreferences(IntentListener.this);
+
+        @Override
+        public void onReceive(Context context,Intent intent){
+            Log.d(getClass().getSimpleName(),Utils.examine(intent));
+            SongDao dao = database.dao();
+            String title = intent.getExtras().getString(EXTRA_TITLE,null);
+            String artist = intent.getExtras().getString(EXTRA_ARTIST,null);
+            boolean playing = intent.getExtras().getBoolean(EXTRA_PLAYING,false);
+            if(title != null && artist != null && playing)
+            {
+                String songId = Song.generateId(title,artist);
+                if(!songId.equals(prefs.getString(getString(R.string.key_song_last),"")))
+                {
+                    new Thread(new Runnable(){
+                        @Override
+                        public void run(){
+                            List<Song> results = dao.findById(Song.generateId(title,artist));
+                            Song song;
+                            if(results.size() > 0)
+                                song = results.get(0);
+                            else
+                                song = new Song(title,artist);
+                            song.setPlaysCount(song.getPlaysCount() + 1);
+                            dao.insertAll(song);
+                        }
+                    }).start();
+                    prefs.edit().putString(getString(R.string.key_song_last),songId).apply();
+                }
+            }
+        }
+    }
+
+    @TargetApi(Build.VERSION_CODES.O)
+    private void manageNotification(boolean show)
+    {
+        if(Build.VERSION.SDK_INT >= Build.VERSION_CODES.O)
+        {
+            if(show)
+                startForeground(ForegroundNotificationBuilder.getNotificationId(),ForegroundNotificationBuilder.getNotification(this));
+            else
+                stopForeground(true);
+        }
     }
 
     @Override
@@ -236,5 +258,7 @@ public class IntentListener extends Service
     {
         super.onDestroy();
         unregisterReceiver(receiver);
+
+        manageNotification(false);
     }
 }

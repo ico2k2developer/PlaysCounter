@@ -1,4 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
     <string translatable="false" formatted="false" name="key_song_last">last song</string>
+    <string translatable="false" formatted="false" name="key_permission_message_show">show permission message</string>
 </resources>

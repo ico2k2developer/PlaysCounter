@@ -1,6 +1,8 @@
 package it.developing.ico2k2.playscounter;
 
 import android.content.Context;
+import android.provider.ContactsContract;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -14,14 +16,15 @@ import androidx.annotation.LayoutRes;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
+import java.util.Collections;
+import java.util.Comparator;
 import java.util.List;
 
 public class SimpleListAdapter extends BaseAdapter
 {
     public static class DataHolder
     {
-        private final String title;
-        private final String subtitle;
+        private final String title,subtitle;
 
         public DataHolder(String title,String subtitle)
         {
@@ -33,9 +36,20 @@ public class SimpleListAdapter extends BaseAdapter
         {
             this(title,null);
         }
+
+        public String getTitle()
+        {
+            return title;
+        }
+
+        public String getSubtitle()
+        {
+            return subtitle;
+        }
     }
 
     private final ArrayList<DataHolder> data;
+    private final ArrayList<Integer> indexes;
     private final LayoutInflater inflater;
     private final int layout;
     private final int title;
@@ -49,7 +63,16 @@ public class SimpleListAdapter extends BaseAdapter
         this.title = title;
         this.subtitle = subtitle;
         showSubtitle = true;
-        data = capacity > 0 ? new ArrayList<>(capacity) : new ArrayList<>();
+        if(capacity > 0)
+        {
+            data = new ArrayList<>(capacity);
+            indexes = new ArrayList<>(capacity);
+        }
+        else
+        {
+            data = new ArrayList<>();
+            indexes = new ArrayList<>();
+        }
     }
 
     public SimpleListAdapter(int capacity,LayoutInflater inflater,@LayoutRes int layout,@IdRes int title)
@@ -80,47 +103,59 @@ public class SimpleListAdapter extends BaseAdapter
 
     public void add(String title,String subtitle)
     {
-        data.add(new DataHolder(title,subtitle));
+        add(new DataHolder(title,subtitle));
     }
 
     public void add(String title)
     {
-        data.add(new DataHolder(title));
+        add(new DataHolder(title));
     }
 
     public void add(DataHolder item)
     {
         data.add(item);
+        indexes.add(indexes.size());
     }
 
     public void addAll(Collection<? extends DataHolder> items)
     {
         data.addAll(items);
+        for(DataHolder ignored: items)
+            indexes.add(indexes.size());
     }
 
-    public void addAll(DataHolder ... items )
+    public void addAll(DataHolder ... items)
     {
-        data.addAll(Arrays.asList(items));
+        addAll(Arrays.asList(items));
     }
 
     public void remove(int index)
     {
-        data.remove(index);
+        data.remove(indexes.get(index));
+        indexes.remove(index);
     }
 
     public void remove(DataHolder item)
     {
+        indexes.remove((Integer)data.indexOf(item));
         data.remove(item);
     }
 
     public void clear()
     {
         data.clear();
+        indexes.clear();
     }
 
     public void ensureCapacity(int capacity)
     {
         data.ensureCapacity(capacity);
+        indexes.ensureCapacity(capacity);
+    }
+
+    public void sort(Comparator<Integer> comparator)
+    {
+        Collections.sort(indexes,comparator);
     }
 
     @Override
@@ -130,6 +165,10 @@ public class SimpleListAdapter extends BaseAdapter
 
     @Override
     public DataHolder getItem(int position){
+        return data.get(indexes.get(position));
+    }
+
+    public DataHolder getRealItem(int position){
         return data.get(position);
     }
 
@@ -146,9 +185,20 @@ public class SimpleListAdapter extends BaseAdapter
             convertView = inflater.inflate(layout,parent,false);
         }
         DataHolder data = getItem(position);
-        ((TextView)convertView.findViewById(title)).setText(data.title);
-        if(data.subtitle != null && showSubtitle)
-            ((TextView)convertView.findViewById(subtitle)).setText(data.subtitle);
+        TextView txt = (TextView)convertView.findViewById(title);
+        if(txt != null)
+            txt.setText(data.getTitle());
+        txt = (TextView)convertView.findViewById(subtitle);
+        if(txt != null)
+        {
+            if(data.getSubtitle() != null && showSubtitle)
+            {
+                txt.setText(data.getSubtitle());
+                txt.setVisibility(View.VISIBLE);
+            }
+            else
+                txt.setVisibility(View.GONE);
+        }
         return convertView;
     }
 }
