@@ -211,8 +211,8 @@ public class IntentListener extends Service
         final SharedPreferences prefs = PreferenceManager.getDefaultSharedPreferences(IntentListener.this);
 
         @Override
-        public void onReceive(Context context,Intent intent){
-            Log.d(getClass().getSimpleName(),Utils.examine(intent));
+        public void onReceive(Context context,Intent intent)
+        {
             SongDao dao = database.dao();
             String title = intent.getExtras().getString(EXTRA_TITLE,null);
             String artist = intent.getExtras().getString(EXTRA_ARTIST,null);
@@ -230,14 +230,19 @@ public class IntentListener extends Service
                             if(results.size() > 0)
                                 song = results.get(0);
                             else
-                                song = new Song(title,artist);
+                                song = new Song(title,artist,0);
+                            song.updateLastPlayDate();
                             song.setPlaysCount(song.getPlaysCount() + 1);
                             dao.insertAll(song);
+                            Log.d(getClass().getSimpleName(),"Saved new play for song " + song.toString());
                         }
                     }).start();
                     prefs.edit().putString(getString(R.string.key_song_last),songId).apply();
                 }
+                else
+                    Log.d(getClass().getSimpleName(),"Song already playing!");
             }
+            Log.d(getClass().getSimpleName(),Utils.examine(intent));
         }
     }
 

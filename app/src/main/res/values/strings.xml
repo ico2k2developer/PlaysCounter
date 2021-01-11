@@ -3,14 +3,20 @@
     <string name="refresh">Refresh</string>
     <string name="db_clear">Clear database</string>
     <string name="song_desc">%s, %s</string>
-    <string name="song_desc_sub">Played %d time</string>
-    <string name="song_desc_sub_p">Played %d times</string>
+    <string name="song_desc_sub">Played %d time, on %s</string>
+    <string name="song_desc_sub_p">Played %d times, last time on %s</string>
+    <string name="date_time">%s at %s</string>
     <string name="notification_foreground">Checking for playing songs</string>
     <string name="notification_foreground_desc">We are checking which songs you play most!</string>
     <string name="main_notification_channel">Background notification</string>
-    <string name="permission_notification_message">Some media apps require notification access in order to identify the playing songs. Do you want to go the Settings page to grant the permission?</string>
+    <string name="permission_notification_message">Some media apps require this app to get notification access in order to identify the playing songs. Do you want to go the Settings page to grant the permission?</string>
     <string name="permission_notification_menu">Grant permission</string>
     <string name="permission_notification_show_settings">Settings</string>
     <string name="show_never_again">Show never again</string>
     <string name="ok">OK</string>
+    <string name="cancel">Cancel</string>
+    <string name="db_clear_message">Do you want to clear the plays count database?</string>
+    <string name="item_delete">Delete song plays count</string>
+    <string name="list_empty">Empty list</string>
+    <string name="list_empty_sub">There are no song plays</string>
 </resources>

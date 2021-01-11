@@ -1,13 +1,18 @@
 package it.developing.ico2k2.playscounter;
 
 import android.annotation.TargetApi;
+import android.app.Notification;
+import android.content.ComponentName;
+import android.content.Context;
 import android.content.Intent;
 import android.os.Build;
 import android.os.IBinder;
+import android.provider.Settings;
 import android.service.notification.NotificationListenerService;
 import android.service.notification.StatusBarNotification;
 import android.util.Log;
 
+import androidx.annotation.Nullable;
 import androidx.annotation.RequiresApi;
 import androidx.core.app.NotificationCompat;
 
@@ -15,18 +20,21 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
+import static it.developing.ico2k2.playscounter.IntentListener.ACTION_NOTIFICATION;
 import static it.developing.ico2k2.playscounter.IntentListener.EXTRA_ARTIST;
+import static it.developing.ico2k2.playscounter.IntentListener.EXTRA_PLAYING;
 import static it.developing.ico2k2.playscounter.IntentListener.EXTRA_TITLE;
 
 @RequiresApi(Build.VERSION_CODES.KITKAT)
 public class NotificationListener extends NotificationListenerService
 {
     private static final String PACKAGE_SAMSUNG = "com.sec.android.app.music";
+    private static final String PACKAGE_SPOTIFY = "com.spotify.music";
 
     private static final String[] FILTER =
     {
         PACKAGE_SAMSUNG,
-        "com.spotify.music",
+        PACKAGE_SPOTIFY,
         "com.google.android.apps.youtube.music",
         "deezer.android.app",
         "com.soundcloud.android",
@@ -34,20 +42,27 @@ public class NotificationListener extends NotificationListenerService
     };
 
     private List<String> packages;
-    private NotificationCompat notification;
 
-    public static boolean isNotificationAccessEnabled = false;
+    public static boolean isPermissionGranted(Context context)
+    {
+        ComponentName cn = new ComponentName(context,NotificationListener.class);
+        String flat = Settings.Secure.getString(context.getContentResolver(), "enabled_notification_listeners");
+        boolean result = flat != null && flat.contains(cn.flattenToString());
+        Log.d(NotificationListener.class.getSimpleName(),"Permission granted: " + result);
+        return result;
+    }
 
-    @Override
+    /*@Override
     public void onListenerConnected() {
         isNotificationAccessEnabled = true;
+        Log.d(getClass().getSimpleName(),"Listener connected");
     }
 
     @Override
     public void onListenerDisconnected() {
         isNotificationAccessEnabled = false;
-        stopSelf();
-    }
+        Log.d(getClass().getSimpleName(),"Listener disconnected");
+    }*/
 
     @Override
     public void onCreate()
@@ -55,17 +70,48 @@ public class NotificationListener extends NotificationListenerService
         super.onCreate();
         manageNotification(true);
         packages = new ArrayList<>(Arrays.asList(FILTER));
+        Log.d(getClass().getSimpleName(),"Listener created");
+    }
+
+    @Override
+    public int onStartCommand(Intent intent, int flags, int startId) {
+        Log.d(getClass().getSimpleName(),"Listener started");
+        return super.onStartCommand(intent,flags,startId);
     }
 
     public void onNotificationPosted(StatusBarNotification sbn) {
         if(packages.contains(sbn.getPackageName()))
         {
             Log.d(getClass().getSimpleName(),Utils.examine(sbn.getNotification().extras));
-            Intent i = new Intent(this,IntentListener.Receiver.class);
+            Log.d(getClass().getSimpleName(),Utils.examine(sbn.getNotification().actions));
+            Intent i = new Intent(ACTION_NOTIFICATION);
             i.putExtra(EXTRA_TITLE,sbn.getNotification().extras.get("android.title").toString());
             i.putExtra(EXTRA_ARTIST,sbn.getNotification().extras.get("android.text").toString());
+            i.putExtra(EXTRA_PLAYING,getPlaying(sbn.getPackageName(),sbn.getNotification()));
             sendBroadcast(i);
         }
+    }
+
+    private static final int PLAY_SAMSUNG = 2131230952;
+    private static final int PLAY_SPOTIFY = 2131231605;
+
+    private static boolean getPlaying(String packageName,Notification notification)
+    {
+        boolean result = false;
+        switch(packageName)
+        {
+            case PACKAGE_SAMSUNG:
+            {
+                result = notification.actions[1].icon == PLAY_SAMSUNG;
+                break;
+            }
+            case PACKAGE_SPOTIFY:
+            {
+                result = notification.actions[2].icon == PLAY_SPOTIFY;
+                break;
+            }
+        }
+        return result;
     }
 
     public void onNotificationRemoved(StatusBarNotification sbn) {
@@ -96,6 +142,7 @@ public class NotificationListener extends NotificationListenerService
 
     @Override
     public IBinder onBind(Intent intent) {
+        Log.d(getClass().getSimpleName(),"Listener bound");
         return super.onBind(intent);
     }
 }

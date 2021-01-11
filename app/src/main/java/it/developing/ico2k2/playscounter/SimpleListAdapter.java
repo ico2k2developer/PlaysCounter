@@ -20,11 +20,14 @@ import java.util.Collections;
 import java.util.Comparator;
 import java.util.List;
 
+import it.developing.ico2k2.playscounter.database.Database;
+
 public class SimpleListAdapter extends BaseAdapter
 {
     public static class DataHolder
     {
         private final String title,subtitle;
+        private int id;
 
         public DataHolder(String title,String subtitle)
         {
@@ -37,6 +40,12 @@ public class SimpleListAdapter extends BaseAdapter
             this(title,null);
         }
 
+        private DataHolder()
+        {
+            title = null;
+            subtitle = null;
+        }
+
         public String getTitle()
         {
             return title;
@@ -45,6 +54,17 @@ public class SimpleListAdapter extends BaseAdapter
         public String getSubtitle()
         {
             return subtitle;
+        }
+
+        @Override
+        public boolean equals(Object o)
+        {
+            boolean result = false;
+            if(o != null)
+            {
+                result = id == ((DataHolder)o).id;
+            }
+            return result;
         }
     }
 
@@ -113,6 +133,7 @@ public class SimpleListAdapter extends BaseAdapter
 
     public void add(DataHolder item)
     {
+        item.id = data.size();
         data.add(item);
         indexes.add(indexes.size());
     }
@@ -163,6 +184,10 @@ public class SimpleListAdapter extends BaseAdapter
         return data.size();
     }
 
+    public DataHolder getItemById(int id){
+        return getItem(getItemPosition(id));
+    }
+
     @Override
     public DataHolder getItem(int position){
         return data.get(indexes.get(position));
@@ -174,7 +199,14 @@ public class SimpleListAdapter extends BaseAdapter
 
     @Override
     public long getItemId(int position){
-        return position;
+        return getItem(position).id;
+    }
+
+    public int getItemPosition(int id)
+    {
+        DataHolder d = new DataHolder();
+        d.id = id;
+        return data.indexOf(d);
     }
 
     @Override

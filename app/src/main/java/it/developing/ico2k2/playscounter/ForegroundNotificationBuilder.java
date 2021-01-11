@@ -9,7 +9,7 @@ import androidx.core.app.NotificationCompat;
 
 public class ForegroundNotificationBuilder
 {
-	private static final int NOTIFICATION_ID = 0xAA;
+	private static final byte NOTIFICATION_ID = (byte)0x99;
 	private static Notification notification;
 
 	public static Notification getNotification(Context context) {
@@ -28,7 +28,7 @@ public class ForegroundNotificationBuilder
 		return notification;
 	}
 
-	public static int getNotificationId() {
+	public static byte getNotificationId() {
 		return NOTIFICATION_ID;
 	}
 }

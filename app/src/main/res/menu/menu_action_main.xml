@@ -4,16 +4,9 @@
     xmlns:app="http://schemas.android.com/apk/res-auto">
 
     <item
-        android:id="@+id/menu_update"
-        android:icon="@android:drawable/ic_menu_rotate"
-        android:title="@string/refresh"
-        app:showAsAction="ifRoom"
-        android:orderInCategory="25"/>
-
-    <item
-        android:id="@+id/menu_clear"
+        android:id="@+id/menu_delete"
         android:icon="@android:drawable/ic_menu_delete"
-        android:title="@string/db_clear"
+        android:title="@string/item_delete"
         app:showAsAction="ifRoom"
         android:orderInCategory="80"/>
 
