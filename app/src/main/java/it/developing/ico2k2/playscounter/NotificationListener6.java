@@ -12,9 +12,7 @@ import android.service.notification.NotificationListenerService;
 import android.service.notification.StatusBarNotification;
 import android.util.Log;
 
-import androidx.annotation.Nullable;
 import androidx.annotation.RequiresApi;
-import androidx.core.app.NotificationCompat;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -26,7 +24,7 @@ import static it.developing.ico2k2.playscounter.IntentListener.EXTRA_PLAYING;
 import static it.developing.ico2k2.playscounter.IntentListener.EXTRA_TITLE;
 
 @RequiresApi(Build.VERSION_CODES.KITKAT)
-public class NotificationListener extends NotificationListenerService
+public class NotificationListener6 extends NotificationListenerService
 {
     private static final String PACKAGE_SAMSUNG = "com.sec.android.app.music";
     private static final String PACKAGE_SPOTIFY = "com.spotify.music";
@@ -45,24 +43,22 @@ public class NotificationListener extends NotificationListenerService
 
     public static boolean isPermissionGranted(Context context)
     {
-        ComponentName cn = new ComponentName(context,NotificationListener.class);
+        ComponentName cn = new ComponentName(context,NotificationListener6.class);
         String flat = Settings.Secure.getString(context.getContentResolver(), "enabled_notification_listeners");
         boolean result = flat != null && flat.contains(cn.flattenToString());
-        Log.d(NotificationListener.class.getSimpleName(),"Permission granted: " + result);
+        Log.d(NotificationListener6.class.getSimpleName(),"Permission granted: " + result);
         return result;
     }
 
-    /*@Override
+    @Override
     public void onListenerConnected() {
-        isNotificationAccessEnabled = true;
         Log.d(getClass().getSimpleName(),"Listener connected");
     }
 
     @Override
     public void onListenerDisconnected() {
-        isNotificationAccessEnabled = false;
         Log.d(getClass().getSimpleName(),"Listener disconnected");
-    }*/
+    }
 
     @Override
     public void onCreate()
@@ -85,8 +81,12 @@ public class NotificationListener extends NotificationListenerService
             Log.d(getClass().getSimpleName(),Utils.examine(sbn.getNotification().extras));
             Log.d(getClass().getSimpleName(),Utils.examine(sbn.getNotification().actions));
             Intent i = new Intent(ACTION_NOTIFICATION);
-            i.putExtra(EXTRA_TITLE,sbn.getNotification().extras.get("android.title").toString());
-            i.putExtra(EXTRA_ARTIST,sbn.getNotification().extras.get("android.text").toString());
+            Object o = sbn.getNotification().extras.get("android.title");
+            if(o != null)
+                i.putExtra(EXTRA_TITLE,o.toString());
+            o = sbn.getNotification().extras.get("android.text");
+            if(o != null)
+                i.putExtra(EXTRA_ARTIST,o.toString());
             i.putExtra(EXTRA_PLAYING,getPlaying(sbn.getPackageName(),sbn.getNotification()));
             sendBroadcast(i);
         }
@@ -97,7 +97,7 @@ public class NotificationListener extends NotificationListenerService
 
     private static boolean getPlaying(String packageName,Notification notification)
     {
-        boolean result = false;
+        boolean result = true;
         switch(packageName)
         {
             case PACKAGE_SAMSUNG:
@@ -137,7 +137,7 @@ public class NotificationListener extends NotificationListenerService
 
 
         manageNotification(false);
-
+        Log.d(getClass().getSimpleName(),"Listener destroyed");
     }
 
     @Override

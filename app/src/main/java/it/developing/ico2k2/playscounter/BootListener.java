@@ -4,7 +4,6 @@ import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
 import android.os.Build;
-import android.widget.Toast;
 
 import androidx.core.content.ContextCompat;
 
@@ -19,8 +18,23 @@ public class BootListener extends BroadcastReceiver
 
     public static void startServices(Context context)
     {
-        if(Build.VERSION.SDK_INT >= Build.VERSION_CODES.JELLY_BEAN_MR2)
-            ContextCompat.startForegroundService(context,new Intent(context,NotificationListener.class));
+        if(Build.VERSION.SDK_INT >= Build.VERSION_CODES.KITKAT)
+            startNotificationListener(context);
         ContextCompat.startForegroundService(context,new Intent(context,IntentListener.class));
     }
+
+    public static void restartNotificationListener(Context context)
+    {
+        if(Build.VERSION.SDK_INT >= Build.VERSION_CODES.KITKAT)
+        {
+            context.stopService(new Intent(context,NotificationListener6.class));
+            startNotificationListener(context);
+        }
+    }
+
+    private static void startNotificationListener(Context context)
+    {
+        ContextCompat.startForegroundService(context,new Intent(context,NotificationListener6.class));
+    }
+
 }

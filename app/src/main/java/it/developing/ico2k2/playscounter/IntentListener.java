@@ -8,6 +8,7 @@ import android.content.Intent;
 import android.content.IntentFilter;
 import android.content.SharedPreferences;
 import android.os.Build;
+import android.os.Bundle;
 import android.os.IBinder;
 import android.util.Log;
 
@@ -29,10 +30,12 @@ public class IntentListener extends Service
 {
 
     public static final String ACTION_NOTIFICATION = "it.developing.ico2k2.playcounter.notificationchanged";
+    public static final String ACTION_PLAYSTATE_CHANGED = "com.android.music.playstatechanged";
 
     public static final String EXTRA_TITLE = "track";
     public static final String EXTRA_ARTIST = "artist";
     public static final String EXTRA_PLAYING = "playing";
+    public static final String EXTRA_LENGTH = "trackLength";
 
     private static final String[] FILTERS =
     {
@@ -42,7 +45,7 @@ public class IntentListener extends Service
         "com.andrew.apollo.metachanged",
         "com.android.music.metachanged",
         "com.android.music.playbackcomplete",
-        "com.android.music.playstatechanged",
+        ACTION_PLAYSTATE_CHANGED,
         "com.android.music.queuechanged",
         "com.doubleTwist.androidPlayer.metachanged",
         "com.doubleTwist.androidPlayer.playstatechanged",
@@ -209,41 +212,53 @@ public class IntentListener extends Service
     class Receiver extends BroadcastReceiver
     {
         final SharedPreferences prefs = PreferenceManager.getDefaultSharedPreferences(IntentListener.this);
-
+        boolean waitingForLength = false;
         @Override
         public void onReceive(Context context,Intent intent)
         {
-            SongDao dao = database.dao();
-            String title = intent.getExtras().getString(EXTRA_TITLE,null);
-            String artist = intent.getExtras().getString(EXTRA_ARTIST,null);
-            boolean playing = intent.getExtras().getBoolean(EXTRA_PLAYING,false);
-            if(title != null && artist != null && playing)
-            {
-                String songId = Song.generateId(title,artist);
-                if(!songId.equals(prefs.getString(getString(R.string.key_song_last),"")))
-                {
-                    new Thread(new Runnable(){
-                        @Override
-                        public void run(){
-                            List<Song> results = dao.findById(Song.generateId(title,artist));
-                            Song song;
-                            if(results.size() > 0)
-                                song = results.get(0);
-                            else
-                                song = new Song(title,artist,0);
-                            song.updateLastPlayDate();
-                            song.setPlaysCount(song.getPlaysCount() + 1);
-                            dao.insertAll(song);
-                            Log.d(getClass().getSimpleName(),"Saved new play for song " + song.toString());
-                        }
-                    }).start();
-                    prefs.edit().putString(getString(R.string.key_song_last),songId).apply();
-                }
-                else
-                    Log.d(getClass().getSimpleName(),"Song already playing!");
-            }
-            Log.d(getClass().getSimpleName(),Utils.examine(intent));
+                Bundle extras = intent.getExtras();
+                String title = extras.getString(EXTRA_TITLE,null);
+                String artist = extras.getString(EXTRA_ARTIST,null);
+                if(title != null && artist != null && extras.getBoolean(EXTRA_PLAYING,false))
+                    updateDatabase(title,artist);
+                Log.d(getClass().getSimpleName(),Utils.examine(intent));
         }
+
+        private void updateDatabase(String title,String artist)
+        {
+            SongDao dao = database.dao();
+            String songId = Song.generateId(title,artist);
+            if(!songId.equals(prefs.getString(getString(R.string.key_song_last),""))){
+                new Thread(new Runnable(){
+                    @Override
+                    public void run(){
+                        List<Song> results = dao.findById(Song.generateId(title,artist));
+                        Song song;
+                        if(results.size() > 0)
+                        {
+                            song = results.get(0);
+                            song.updateLastPlayDate();
+                        }
+                        else
+                            song = new Song(title,artist,0,new Song.Date());
+                        song.setPlaysCount(song.getPlaysCount() + 1);
+                        dao.insertAll(song);
+                        Log.d(getClass().getSimpleName(),"Saved new play for song " + song.toString());
+                    }
+                }).start();
+                prefs.edit().putString(getString(R.string.key_song_last),songId).apply();
+            }
+            else Log.d(getClass().getSimpleName(),"Song already playing!");
+
+        }
+    }
+
+    public static Song.Length longToLength(long ms)
+    {
+        byte hour = (byte)(ms / 1000 / 60 / 60);
+        byte minute = (byte)(ms / 1000 / 60 - hour * 60);
+        byte second = (byte)(ms / 1000 - hour * 60 * 60 - minute * 60);
+        return new Song.Length(hour,minute,second);
     }
 
     @TargetApi(Build.VERSION_CODES.O)

@@ -1,26 +1,21 @@
 package it.developing.ico2k2.playscounter;
 
-import android.content.Context;
-import android.provider.ContactsContract;
-import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
-import android.widget.ArrayAdapter;
 import android.widget.BaseAdapter;
 import android.widget.TextView;
 
 import androidx.annotation.IdRes;
 import androidx.annotation.LayoutRes;
+import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
 
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.Comparator;
-import java.util.List;
-
-import it.developing.ico2k2.playscounter.database.Database;
 
 public class SimpleListAdapter extends BaseAdapter
 {
@@ -29,29 +24,28 @@ public class SimpleListAdapter extends BaseAdapter
         private final String title,subtitle;
         private int id;
 
-        public DataHolder(String title,String subtitle)
+        public DataHolder(@Nullable String title,@Nullable String subtitle)
         {
             this.title = title;
             this.subtitle = subtitle;
         }
 
-        public DataHolder(String title)
+        public DataHolder(@Nullable String title)
         {
             this(title,null);
         }
 
-        private DataHolder()
+        public DataHolder()
         {
-            title = null;
-            subtitle = null;
+            this(null,null);
         }
 
-        public String getTitle()
+        public String getItemTitle()
         {
             return title;
         }
 
-        public String getSubtitle()
+        public String getItemSubtitle()
         {
             return subtitle;
         }
@@ -152,7 +146,7 @@ public class SimpleListAdapter extends BaseAdapter
 
     public void remove(int index)
     {
-        data.remove(indexes.get(index));
+        data.remove((int)indexes.get(index));
         indexes.remove(index);
     }
 
@@ -213,23 +207,24 @@ public class SimpleListAdapter extends BaseAdapter
     public View getView(int position,View convertView,ViewGroup parent)
     {
         if(convertView == null)
-        {
             convertView = inflater.inflate(layout,parent,false);
-        }
         DataHolder data = getItem(position);
         TextView txt = (TextView)convertView.findViewById(title);
         if(txt != null)
-            txt.setText(data.getTitle());
-        txt = (TextView)convertView.findViewById(subtitle);
-        if(txt != null)
+            txt.setText(data.getItemTitle());
+        if(showSubtitle)
         {
-            if(data.getSubtitle() != null && showSubtitle)
+            txt = (TextView)convertView.findViewById(subtitle);
+            if(txt != null)
             {
-                txt.setText(data.getSubtitle());
-                txt.setVisibility(View.VISIBLE);
+                if(data.getItemSubtitle() != null)
+                {
+                    txt.setText(data.getItemSubtitle());
+                    txt.setVisibility(View.VISIBLE);
+                }
+                else
+                    txt.setVisibility(View.GONE);
             }
-            else
-                txt.setVisibility(View.GONE);
         }
         return convertView;
     }

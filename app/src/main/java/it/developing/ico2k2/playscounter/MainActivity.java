@@ -1,12 +1,10 @@
 package it.developing.ico2k2.playscounter;
 
 import android.annotation.TargetApi;
-import android.app.Activity;
 import android.app.AlertDialog;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.SharedPreferences;
-import android.media.audiofx.BassBoost;
 import android.os.Build;
 import android.os.Bundle;
 import android.provider.Settings;
@@ -14,14 +12,11 @@ import android.util.Log;
 import android.view.ActionMode;
 import android.view.Menu;
 import android.view.MenuItem;
-import android.view.View;
 import android.view.ViewGroup;
 import android.widget.AbsListView;
-import android.widget.AdapterView;
-import android.widget.BaseAdapter;
 import android.widget.ListView;
 
-import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
 import androidx.annotation.RequiresApi;
 import androidx.preference.PreferenceManager;
 
@@ -39,7 +34,7 @@ import static it.developing.ico2k2.playscounter.Utils.DATABASE_SONGS;
 
 public class MainActivity extends BaseActivity
 {
-    private SimpleListAdapter adapter;
+    private SongListAdapter adapter;
     private Database database;
     private ListView list;
     private Menu menu;
@@ -51,10 +46,11 @@ public class MainActivity extends BaseActivity
         list = new ListView(this);
         list.setLayoutParams(new ViewGroup.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT,ViewGroup.LayoutParams.MATCH_PARENT));
         setContentView(list);
-        adapter = new SimpleListAdapter(getLayoutInflater(),
-                android.R.layout.simple_list_item_2,
+        adapter = new SongListAdapter(getLayoutInflater(),
+                R.layout.song_list_item,
                 android.R.id.text1,
-                android.R.id.text2);
+                android.R.id.text2,
+                R.id.song_item_duration);
         list.setAdapter(adapter);
 
         list.setChoiceMode(ListView.CHOICE_MODE_MULTIPLE_MODAL);
@@ -84,37 +80,7 @@ public class MainActivity extends BaseActivity
                 {
                     case R.id.menu_delete:
                     {
-                        synchronized(adapter)
-                        {
-                            new Thread(new Runnable(){
-                                @Override
-                                public void run(){
-                                    SongDao dao = database.dao();
-                                    SongItem item;
-                                    for(int id : ids)
-                                    {
-                                        item = (SongItem)adapter.getItemById(id);
-                                        adapter.remove(item);
-                                        dao.delete(Song.generateId(item.getTrackTitle(),item.getArtist()));
-                                    }
-                                    if(adapter.isEmpty())
-                                        adapter.add("Empty list","there is no items");
-                                    else
-                                        adapter.sort(new Comparator<Integer>(){
-                                            @Override public int compare(Integer i1,Integer i2)
-                                            {
-                                                return ((SongItem)adapter.getRealItem(i2)).getPlaysCount() - ((SongItem)adapter.getRealItem(i1)).getPlaysCount();
-                                            }
-                                        });
-                                    MainActivity.this.list.post(new Runnable(){
-                                        @Override
-                                        public void run(){
-                                            adapter.notifyDataSetChanged();
-                                        }
-                                    });
-                                }
-                            }).start();
-                        }
+                        databaseUpdate(UpdateType.DELETE,ids.toArray());
                         break;
                     }
                     default:
@@ -136,42 +102,43 @@ public class MainActivity extends BaseActivity
         if(Build.VERSION.SDK_INT >= Build.VERSION_CODES.KITKAT)
         {
             SharedPreferences prefs = PreferenceManager.getDefaultSharedPreferences(this);
-            if(!NotificationListener.isPermissionGranted(this) &&
+            if(!NotificationListener6.isPermissionGranted(this) &&
                     !prefs.getBoolean(getString(R.string.key_permission_message_show),false))
                 showSettingsPage(prefs);
         }
     }
 
-    class SongItem extends SimpleListAdapter.DataHolder
+    class SongItem extends SongListAdapter.SongHolder
     {
         private final int playsCount;
         private final String date;
+        private final String length;
 
-        public SongItem(String title,String artist,int playsCount,String date)
+        public SongItem(String title,String artist,int playsCount,@Nullable Date date,@Nullable Song.Length length)
         {
             super(title,artist);
             this.playsCount = playsCount;
-            this.date = date;
+            this.date = date == null ? null : String.format(getString(R.string.date_time),
+                    android.text.format.DateFormat.getDateFormat(MainActivity.this)
+                            .format(date),
+                    android.text.format.DateFormat.getTimeFormat(MainActivity.this)
+                            .format(date));
+            this.length = length == null ? null : length.toString();
         }
 
-        public SongItem(String title,String artist,int playsCount,@NonNull Date date)
+        public SongItem(String title,String artist,int playsCount,@Nullable Song.Date date,@Nullable Song.Length length)
         {
-            this(title,artist,playsCount,
-                    String.format(getString(R.string.date_time),
-                            android.text.format.DateFormat.getDateFormat(MainActivity.this)
-                                .format(date),
-                            android.text.format.DateFormat.getTimeFormat(MainActivity.this)
-                                 .format(date)));
+            this(title,artist,playsCount,date == null ? null : date.toDate(),length);
         }
 
         public SongItem(String title,String artist,int playsCount)
         {
-            this(title,artist,playsCount,(String)null);
+            this(title,artist,playsCount,(Date)null,null);
         }
 
         public SongItem(Song song)
         {
-            this(song.getTitle(),song.getArtist(),song.getPlaysCount(),song.getLastPlay());
+            this(song.getTitle(),song.getArtist(),song.getPlaysCount(),song.getLastPlay(),song.getLength());
         }
 
         public SongItem(String title,String artist)
@@ -180,27 +147,17 @@ public class MainActivity extends BaseActivity
         }
 
         @Override
-        public String getTitle()
+        public String getItemTitle()
         {
-            return String.format(getString(R.string.song_desc),getTrackTitle(),getArtist());
+            return String.format(getString(R.string.song_desc),getTitle(),getArtist());
         }
 
         @Override
-        public String getSubtitle()
+        public String getItemSubtitle()
         {
             return String.format(
                     getString(playsCount > 1 ? R.string.song_desc_sub_p : R.string.song_desc_sub),
                     playsCount,date);
-        }
-
-        public String getTrackTitle()
-        {
-            return super.getTitle();
-        }
-
-        public String getArtist()
-        {
-            return super.getSubtitle();
         }
 
         public int getPlaysCount()
@@ -209,18 +166,49 @@ public class MainActivity extends BaseActivity
         }
     }
 
-    private void refresh()
+    private enum UpdateType
+    {
+        REFRESH,
+        DELETE,
+        DELETEALL,
+    }
+
+    private void databaseUpdate(UpdateType type,Object ... arguments)
     {
         synchronized(adapter)
         {
             new Thread(new Runnable(){
                 @Override
                 public void run(){
-                    adapter.clear();
                     SongDao dao = database.dao();
-                    List<Song> list = dao.getAll();
-                    for(Song song : list)
-                        adapter.add(new SongItem(song));
+                    switch(type)
+                    {
+                        case REFRESH:
+                        {
+                            adapter.clear();
+                            List<Song> list = dao.getAll();
+                            for(Song song : list)
+                                adapter.add(new SongItem(song));
+                            break;
+                        }
+                        case DELETEALL:
+                        {
+                            adapter.clear();
+                            database.dao().deleteAll();
+                            break;
+                        }
+                        case DELETE:
+                        {
+                            SongItem item;
+                            for(int id : ((Integer[])arguments[0]))
+                            {
+                                item = (SongItem)adapter.getItemById(id);
+                                adapter.remove(item);
+                                dao.delete(Song.generateId(item.getTitle(),item.getArtist()));
+                            }
+                            break;
+                        }
+                    }
                     if(adapter.isEmpty())
                         adapter.add("Empty list","there is no items");
                     else
@@ -250,23 +238,7 @@ public class MainActivity extends BaseActivity
             dialog.setNegativeButton(R.string.ok,new DialogInterface.OnClickListener(){
                 @Override
                 public void onClick(DialogInterface dialog,int which){
-                    synchronized(adapter)
-                    {
-                        new Thread(new Runnable(){
-                            @Override
-                            public void run(){
-                                adapter.clear();
-                                database.dao().deleteAll();
-                                MainActivity.this.list.post(new Runnable(){
-                                    @Override
-                                    public void run(){
-                                        adapter.notifyDataSetChanged();
-                                    }
-                                });
-
-                            }
-                        }).start();
-                    }
+                    databaseUpdate(UpdateType.DELETEALL);
                 }
             });
             dialog.setPositiveButton(R.string.cancel,new DialogInterface.OnClickListener(){
@@ -285,7 +257,7 @@ public class MainActivity extends BaseActivity
     {
         super.onResume();
         BootListener.startServices(this);
-        refresh();
+        databaseUpdate(UpdateType.REFRESH);
         checkMenu();
     }
 
@@ -324,11 +296,15 @@ public class MainActivity extends BaseActivity
     {
         if(menu != null)
         {
-            boolean connected = NotificationListener.isPermissionGranted(this);
+            boolean connected = NotificationListener6.isPermissionGranted(this);
             if(menu.findItem(R.id.menu_permission) != null)
             {
                 if(connected)
+                {
+                    Log.d(getClass().getSimpleName(),"Found menu item, removing & restart service");
                     menu.removeItem(R.id.menu_permission);
+                    BootListener.restartNotificationListener(this);
+                }
             }
             else
             {
@@ -364,7 +340,7 @@ public class MainActivity extends BaseActivity
         {
             case R.id.menu_update:
             {
-                refresh();
+                databaseUpdate(UpdateType.REFRESH);
                 break;
             }
             case R.id.menu_clear:
