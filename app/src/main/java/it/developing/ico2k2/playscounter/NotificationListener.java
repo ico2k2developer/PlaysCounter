@@ -24,7 +24,7 @@ import static it.developing.ico2k2.playscounter.IntentListener.EXTRA_PLAYING;
 import static it.developing.ico2k2.playscounter.IntentListener.EXTRA_TITLE;
 
 @RequiresApi(Build.VERSION_CODES.KITKAT)
-public class NotificationListener6 extends NotificationListenerService
+public class NotificationListener extends NotificationListenerService
 {
     private static final String PACKAGE_SAMSUNG = "com.sec.android.app.music";
     private static final String PACKAGE_SPOTIFY = "com.spotify.music";
@@ -43,10 +43,10 @@ public class NotificationListener6 extends NotificationListenerService
 
     public static boolean isPermissionGranted(Context context)
     {
-        ComponentName cn = new ComponentName(context,NotificationListener6.class);
+        ComponentName cn = new ComponentName(context,NotificationListener.class);
         String flat = Settings.Secure.getString(context.getContentResolver(), "enabled_notification_listeners");
         boolean result = flat != null && flat.contains(cn.flattenToString());
-        Log.d(NotificationListener6.class.getSimpleName(),"Permission granted: " + result);
+        Log.d(NotificationListener.class.getSimpleName(),"Permission granted: " + result);
         return result;
     }
 

@@ -27,14 +27,14 @@ public class BootListener extends BroadcastReceiver
     {
         if(Build.VERSION.SDK_INT >= Build.VERSION_CODES.KITKAT)
         {
-            context.stopService(new Intent(context,NotificationListener6.class));
+            context.stopService(new Intent(context,NotificationListener.class));
             startNotificationListener(context);
         }
     }
 
     private static void startNotificationListener(Context context)
     {
-        ContextCompat.startForegroundService(context,new Intent(context,NotificationListener6.class));
+        ContextCompat.startForegroundService(context,new Intent(context,NotificationListener.class));
     }
 
 }

@@ -34,7 +34,7 @@ import static it.developing.ico2k2.playscounter.Utils.DATABASE_SONGS;
 
 public class MainActivity extends BaseActivity
 {
-    private SongListAdapter adapter;
+    private SimpleListAdapter adapter;
     private Database database;
     private ListView list;
     private Menu menu;
@@ -46,11 +46,10 @@ public class MainActivity extends BaseActivity
         list = new ListView(this);
         list.setLayoutParams(new ViewGroup.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT,ViewGroup.LayoutParams.MATCH_PARENT));
         setContentView(list);
-        adapter = new SongListAdapter(getLayoutInflater(),
-                R.layout.song_list_item,
+        adapter = new SimpleListAdapter(getLayoutInflater(),
+                android.R.layout.simple_list_item_2,
                 android.R.id.text1,
-                android.R.id.text2,
-                R.id.song_item_duration);
+                android.R.id.text2);
         list.setAdapter(adapter);
 
         list.setChoiceMode(ListView.CHOICE_MODE_MULTIPLE_MODAL);
@@ -102,19 +101,18 @@ public class MainActivity extends BaseActivity
         if(Build.VERSION.SDK_INT >= Build.VERSION_CODES.KITKAT)
         {
             SharedPreferences prefs = PreferenceManager.getDefaultSharedPreferences(this);
-            if(!NotificationListener6.isPermissionGranted(this) &&
+            if(!NotificationListener.isPermissionGranted(this) &&
                     !prefs.getBoolean(getString(R.string.key_permission_message_show),false))
                 showSettingsPage(prefs);
         }
     }
 
-    class SongItem extends SongListAdapter.SongHolder
+    class SongItem extends SimpleListAdapter.DataHolder
     {
         private final int playsCount;
         private final String date;
-        private final String length;
 
-        public SongItem(String title,String artist,int playsCount,@Nullable Date date,@Nullable Song.Length length)
+        public SongItem(String title,String artist,int playsCount,@Nullable Date date)
         {
             super(title,artist);
             this.playsCount = playsCount;
@@ -123,22 +121,21 @@ public class MainActivity extends BaseActivity
                             .format(date),
                     android.text.format.DateFormat.getTimeFormat(MainActivity.this)
                             .format(date));
-            this.length = length == null ? null : length.toString();
         }
 
-        public SongItem(String title,String artist,int playsCount,@Nullable Song.Date date,@Nullable Song.Length length)
+        public SongItem(String title,String artist,int playsCount,@Nullable Song.Date date)
         {
-            this(title,artist,playsCount,date == null ? null : date.toDate(),length);
+            this(title,artist,playsCount,date == null ? null : date.toDate());
         }
 
         public SongItem(String title,String artist,int playsCount)
         {
-            this(title,artist,playsCount,(Date)null,null);
+            this(title,artist,playsCount,(Date)null);
         }
 
         public SongItem(Song song)
         {
-            this(song.getTitle(),song.getArtist(),song.getPlaysCount(),song.getLastPlay(),song.getLength());
+            this(song.getTitle(),song.getArtist(),song.getPlaysCount(),song.getLastPlay());
         }
 
         public SongItem(String title,String artist)
@@ -158,6 +155,16 @@ public class MainActivity extends BaseActivity
             return String.format(
                     getString(playsCount > 1 ? R.string.song_desc_sub_p : R.string.song_desc_sub),
                     playsCount,date);
+        }
+
+        public String getTitle()
+        {
+            return super.getItemTitle();
+        }
+
+        public String getArtist()
+        {
+            return super.getItemSubtitle();
         }
 
         public int getPlaysCount()
@@ -209,9 +216,7 @@ public class MainActivity extends BaseActivity
                             break;
                         }
                     }
-                    if(adapter.isEmpty())
-                        adapter.add("Empty list","there is no items");
-                    else
+                    if(!adapter.isEmpty())
                         adapter.sort(new Comparator<Integer>(){
                             @Override public int compare(Integer i1,Integer i2)
                             {
@@ -296,7 +301,7 @@ public class MainActivity extends BaseActivity
     {
         if(menu != null)
         {
-            boolean connected = NotificationListener6.isPermissionGranted(this);
+            boolean connected = NotificationListener.isPermissionGranted(this);
             if(menu.findItem(R.id.menu_permission) != null)
             {
                 if(connected)

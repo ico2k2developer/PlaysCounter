@@ -1,10 +1,7 @@
 package it.developing.ico2k2.playscounter.database;
 
 import android.content.Context;
-
 import androidx.room.Room;
-
-import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -13,10 +10,8 @@ public class DatabaseClient
     private static final Map<String,DatabaseClient> clients = new HashMap<>();
     private final Database database;
 
-    private DatabaseClient(Context context,String name) {
-
-        //creating the app database with Room database builder
-        //MyToDos is the name of the database
+    private DatabaseClient(Context context,String name)
+    {
         database = Room.databaseBuilder(context, Database.class, name).build();
     }
 
