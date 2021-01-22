@@ -8,6 +8,7 @@
 	<string name="date_time">%s alle %s</string>
 	<string name="notification_foreground">In attesa di canzoni riprodotte</string>
 	<string name="notification_foreground_desc">Stiamo controllando quali canzoni ascolti di più!</string>
+	<string name="notification_foreground_act_close">Termina</string>
 	<string name="main_notification_channel">Notifiche background</string>
 	<string name="permission_notification_message">Alcune app multimediali rendono necessario l\'accesso alle notifiche per quest\'app per poter identificare le canzoni riprodotte. Vuoi andare nelle Impostazioni?</string>
 	<string name="permission_notification_menu">Dai permesso</string>

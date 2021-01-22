@@ -4,12 +4,14 @@ import android.app.Activity;
 import android.os.Bundle;
 import android.util.Log;
 
+import androidx.annotation.RequiresApi;
+
 public class BaseActivity extends Activity
 {
-    @Override
-    public void onCreate(Bundle savedInstanceState)
+    @RequiresApi(11)
+    protected void setBackButtonEnabled(boolean enabled)
     {
-        super.onCreate(savedInstanceState);
-
+        getActionBar().setHomeButtonEnabled(enabled);
+        getActionBar().setDisplayHomeAsUpEnabled(enabled);
     }
 }

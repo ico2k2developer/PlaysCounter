@@ -56,7 +56,9 @@ public class MainActivity extends BaseActivity
         list.setMultiChoiceModeListener(new AbsListView.MultiChoiceModeListener(){
             private ArrayList<Integer> ids;
             @Override
-            public void onItemCheckedStateChanged(ActionMode mode,int position,long id,boolean checked){
+            public void onItemCheckedStateChanged(ActionMode mode,int position,long id,boolean checked)
+            {
+                Log.d(getClass().getSimpleName(),"Position " + position + ", checked? " + checked);
                 ids.add((int)id);
             }
 
@@ -68,7 +70,8 @@ public class MainActivity extends BaseActivity
             }
 
             @Override
-            public boolean onPrepareActionMode(ActionMode mode,Menu menu){
+            public boolean onPrepareActionMode(ActionMode mode,Menu menu)
+            {
                 return false;
             }
 

@@ -18,7 +18,6 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
-import static it.developing.ico2k2.playscounter.IntentListener.ACTION_NOTIFICATION;
 import static it.developing.ico2k2.playscounter.IntentListener.EXTRA_ARTIST;
 import static it.developing.ico2k2.playscounter.IntentListener.EXTRA_PLAYING;
 import static it.developing.ico2k2.playscounter.IntentListener.EXTRA_TITLE;
@@ -80,7 +79,7 @@ public class NotificationListener extends NotificationListenerService
         {
             Log.d(getClass().getSimpleName(),Utils.examine(sbn.getNotification().extras));
             Log.d(getClass().getSimpleName(),Utils.examine(sbn.getNotification().actions));
-            Intent i = new Intent(ACTION_NOTIFICATION);
+            Intent i = new Intent(this,IntentListener.class);
             Object o = sbn.getNotification().extras.get("android.title");
             if(o != null)
                 i.putExtra(EXTRA_TITLE,o.toString());

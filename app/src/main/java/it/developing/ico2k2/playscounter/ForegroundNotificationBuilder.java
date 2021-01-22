@@ -9,7 +9,12 @@ import androidx.core.app.NotificationCompat;
 
 public class ForegroundNotificationBuilder
 {
-	private static final byte NOTIFICATION_ID = (byte)0x99;
+	private static final byte NOTIFICATION_ID = (byte)0x11;
+
+	public static final String EXTRA_ACTION = "action";
+
+	public static final byte ACTION_STOP = 0x11;
+
 	private static Notification notification;
 
 	public static Notification getNotification(Context context) {
@@ -22,6 +27,9 @@ public class ForegroundNotificationBuilder
 					.setContentIntent(PendingIntent.getActivity(context,0,new Intent(context,MainActivity.class),0))
 					.setSmallIcon(R.drawable.ic_not_foreground)
 					.setCategory(NotificationCompat.CATEGORY_SERVICE)
+					.addAction(0,context.getString(R.string.notification_foreground_act_close),
+							PendingIntent.getService(context,0,new Intent(context,IntentListener.class).putExtra(
+									EXTRA_ACTION,ACTION_STOP),0))
 					.build();
 		}
 

@@ -1,5 +1,7 @@
 package it.developing.ico2k2.playscounter;
 
+import android.app.Activity;
+import android.content.Context;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -64,19 +66,23 @@ public class SimpleListAdapter extends BaseAdapter
 
     private final ArrayList<DataHolder> data;
     private final ArrayList<Integer> indexes;
+    private final Context context;
     private final LayoutInflater inflater;
     private final int layout;
     private final int title;
     private final int subtitle;
+    private final int icon;
     private boolean showSubtitle;
 
-    public SimpleListAdapter(int capacity,LayoutInflater inflater,@LayoutRes int layout,@IdRes int title,@IdRes int subtitle)
+    public SimpleListAdapter(Activity activity,int capacity,@LayoutRes int layout,@IdRes int title,@IdRes int subtitle,@IdRes int icon)
     {
-        this.inflater = inflater;
+        this.context = activity;
+        this.inflater = activity.getLayoutInflater();
         this.layout = layout;
         this.title = title;
         this.subtitle = subtitle;
-        showSubtitle = true;
+        this.icon = icon;
+        showSubtitle = subtitle != 0;
         if(capacity > 0)
         {
             data = new ArrayList<>(capacity);
@@ -89,20 +95,19 @@ public class SimpleListAdapter extends BaseAdapter
         }
     }
 
-    public SimpleListAdapter(int capacity,LayoutInflater inflater,@LayoutRes int layout,@IdRes int title)
+    public SimpleListAdapter(Activity activity,int capacity,@LayoutRes int layout,@IdRes int title,@IdRes int subtitle)
     {
-        this(capacity,inflater,layout,title,0);
-        showSubtitle = false;
+        this(activity,capacity,layout,title,subtitle,0);
     }
 
-    public SimpleListAdapter(LayoutInflater inflater,@LayoutRes int layout,@IdRes int title,@IdRes int subtitle)
+    public SimpleListAdapter(Activity activity,@LayoutRes int layout,@IdRes int title,@IdRes int subtitle)
     {
-        this(0,inflater,layout,title,subtitle);
+        this(activity,0,layout,title,subtitle);
     }
 
-    public SimpleListAdapter(LayoutInflater inflater,@LayoutRes int layout,@IdRes int title)
+    public SimpleListAdapter(Activity activity,@LayoutRes int layout,@IdRes int title)
     {
-        this(0,inflater,layout,title);
+        this(activity,layout,title,0);
     }
 
     public void setShowSubtitle(boolean show)

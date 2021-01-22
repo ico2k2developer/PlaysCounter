@@ -8,6 +8,7 @@
     <string name="date_time">%s at %s</string>
     <string name="notification_foreground">Checking for playing songs</string>
     <string name="notification_foreground_desc">We are checking which songs you play most!</string>
+    <string name="notification_foreground_act_close">Stop</string>
     <string name="main_notification_channel">Background notification</string>
     <string name="permission_notification_message">Some media apps require this app to get notification access in order to identify the playing songs. Do you want to go the Settings page to grant the permission?</string>
     <string name="permission_notification_menu">Grant permission</string>

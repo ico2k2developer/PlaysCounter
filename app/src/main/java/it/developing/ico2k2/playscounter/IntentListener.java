@@ -22,14 +22,14 @@ import it.developing.ico2k2.playscounter.database.DatabaseClient;
 import it.developing.ico2k2.playscounter.database.Song;
 import it.developing.ico2k2.playscounter.database.SongDao;
 
+import static it.developing.ico2k2.playscounter.ForegroundNotificationBuilder.ACTION_STOP;
+import static it.developing.ico2k2.playscounter.ForegroundNotificationBuilder.EXTRA_ACTION;
 import static it.developing.ico2k2.playscounter.Utils.DATABASE_SONGS;
 import static it.developing.ico2k2.playscounter.Utils.examineBundle;
 import static it.developing.ico2k2.playscounter.Utils.examineIntent;
 
 public class IntentListener extends Service
 {
-
-    public static final String ACTION_NOTIFICATION = "it.developing.ico2k2.playcounter.notificationchanged";
     public static final String ACTION_PLAYSTATE_CHANGED = "com.android.music.playstatechanged";
 
     public static final String EXTRA_TITLE = "track";
@@ -185,7 +185,6 @@ public class IntentListener extends Service
         "com.miui.player.metachanged",
         "com.miui.player.playstatechanged",
         "com.miui.player.playbackcomplete",
-        ACTION_NOTIFICATION,
     };
 
     private Receiver receiver;
@@ -209,6 +208,13 @@ public class IntentListener extends Service
         registerReceiver(receiver,filter);
     }
 
+    public int onStartCommand(Intent intent, int flags, int startId)
+    {
+        if(intent.getExtras() != null)
+            receiver.onReceive(this,intent);
+        return super.onStartCommand(intent,flags,startId);
+    }
+
     class Receiver extends BroadcastReceiver
     {
         final SharedPreferences prefs = PreferenceManager.getDefaultSharedPreferences(IntentListener.this);
@@ -216,12 +222,26 @@ public class IntentListener extends Service
         @Override
         public void onReceive(Context context,Intent intent)
         {
-                Bundle extras = intent.getExtras();
+            Bundle extras = intent.getExtras();
+            if(extras.containsKey(EXTRA_ACTION))
+            {
+                switch(extras.getByte(EXTRA_ACTION))
+                {
+                    case ACTION_STOP:
+                    {
+                        BootListener.stopServices(context);
+                        break;
+                    }
+                }
+            }
+            else
+            {
                 String title = extras.getString(EXTRA_TITLE,null);
                 String artist = extras.getString(EXTRA_ARTIST,null);
                 if(title != null && artist != null && extras.getBoolean(EXTRA_PLAYING,false))
                     updateDatabase(title,artist);
-                Log.d(getClass().getSimpleName(),Utils.examine(intent));
+            }
+            Log.d(getClass().getSimpleName(),Utils.examine(intent));
         }
 
         private void updateDatabase(String title,String artist)
@@ -251,14 +271,6 @@ public class IntentListener extends Service
             else Log.d(getClass().getSimpleName(),"Song already playing!");
 
         }
-    }
-
-    public static Song.Length longToLength(long ms)
-    {
-        byte hour = (byte)(ms / 1000 / 60 / 60);
-        byte minute = (byte)(ms / 1000 / 60 - hour * 60);
-        byte second = (byte)(ms / 1000 - hour * 60 * 60 - minute * 60);
-        return new Song.Length(hour,minute,second);
     }
 
     @TargetApi(Build.VERSION_CODES.O)
