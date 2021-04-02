@@ -7,11 +7,13 @@ import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
 import android.content.SharedPreferences;
+import android.os.Binder;
 import android.os.Build;
 import android.os.Bundle;
 import android.os.IBinder;
 import android.util.Log;
 
+import androidx.annotation.Nullable;
 import androidx.annotation.RequiresApi;
 import androidx.preference.PreferenceManager;
 
@@ -189,10 +191,28 @@ public class IntentListener extends Service
 
     private Receiver receiver;
     private Database database;
+    private OnUpdateListener listener;
+    private final IBinder binder = new LocalBinder();
+
+    public interface OnUpdateListener
+    {
+        public void onUpdate(String currentSongId);
+    }
+
+    protected void setOnUpdateListener(@Nullable OnUpdateListener listener)
+    {
+        this.listener = listener;
+    }
+
+    public class LocalBinder extends Binder {
+        IntentListener getService() {
+            return IntentListener.this;
+        }
+    }
 
     @Override
-    public IBinder onBind(Intent intent){
-        return null;
+    public IBinder onBind(Intent intent) {
+        return binder;
     }
 
     @Override
@@ -210,8 +230,11 @@ public class IntentListener extends Service
 
     public int onStartCommand(Intent intent, int flags, int startId)
     {
-        if(intent.getExtras() != null)
-            receiver.onReceive(this,intent);
+        if(intent != null)
+        {
+            if(intent.getExtras() != null)
+                receiver.onReceive(this,intent);
+        }
         return super.onStartCommand(intent,flags,startId);
     }
 
@@ -223,6 +246,9 @@ public class IntentListener extends Service
         public void onReceive(Context context,Intent intent)
         {
             Bundle extras = intent.getExtras();
+            Log.d(getClass().getSimpleName(),extras.getString(EXTRA_TITLE,"null") + ", " +
+                    extras.getString(EXTRA_ARTIST,"null") +  ", playing? " +
+                    extras.getBoolean(EXTRA_PLAYING,false));
             if(extras.containsKey(EXTRA_ACTION))
             {
                 switch(extras.getByte(EXTRA_ACTION))
@@ -241,7 +267,6 @@ public class IntentListener extends Service
                 if(title != null && artist != null && extras.getBoolean(EXTRA_PLAYING,false))
                     updateDatabase(title,artist);
             }
-            Log.d(getClass().getSimpleName(),Utils.examine(intent));
         }
 
         private void updateDatabase(String title,String artist)

@@ -2,11 +2,17 @@ package it.developing.ico2k2.playscounter;
 
 import android.annotation.TargetApi;
 import android.app.AlertDialog;
+import android.content.ComponentName;
+import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
+import android.content.ServiceConnection;
 import android.content.SharedPreferences;
 import android.os.Build;
 import android.os.Bundle;
+import android.os.Handler;
+import android.os.IBinder;
+import android.os.Looper;
 import android.provider.Settings;
 import android.util.Log;
 import android.view.ActionMode;
@@ -38,6 +44,37 @@ public class MainActivity extends BaseActivity
     private Database database;
     private ListView list;
     private Menu menu;
+    IntentListener service = null;
+
+    private ServiceConnection serviceConnection = new ServiceConnection() {
+        @Override
+        public void onServiceConnected(ComponentName componentName, IBinder iBinder) {
+            ((IntentListener.LocalBinder)iBinder).getService().setOnUpdateListener(new IntentListener.OnUpdateListener() {
+                @Override
+                public void onUpdate(String currentSongId) {
+                    new Handler(Looper.getMainLooper()).post(new Runnable() {
+                        @Override
+                        public void run() {
+                            databaseUpdate(UpdateType.REFRESH,currentSongId);
+                        }
+                    });
+                }
+            });
+            // now you have the instance of service.
+        }
+
+        @Override
+        public void onServiceDisconnected(ComponentName componentName) {
+            service = null;
+        }
+    };
+
+    @Override
+    protected void onDestroy() {
+        super.onDestroy();
+        service.setOnUpdateListener(null);
+        unbindService(serviceConnection);
+    }
 
     @Override
     public void onCreate(Bundle savedInstanceState)
@@ -46,10 +83,11 @@ public class MainActivity extends BaseActivity
         list = new ListView(this);
         list.setLayoutParams(new ViewGroup.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT,ViewGroup.LayoutParams.MATCH_PARENT));
         setContentView(list);
-        adapter = new SimpleListAdapter(getLayoutInflater(),
+        adapter = new SimpleListAdapter(MainActivity.this,
                 android.R.layout.simple_list_item_2,
                 android.R.id.text1,
                 android.R.id.text2);
+        adapter.setMultiLineSubtitle(true);
         list.setAdapter(adapter);
 
         list.setChoiceMode(ListView.CHOICE_MODE_MULTIPLE_MODAL);
@@ -108,6 +146,9 @@ public class MainActivity extends BaseActivity
                     !prefs.getBoolean(getString(R.string.key_permission_message_show),false))
                 showSettingsPage(prefs);
         }
+
+        startService(new Intent(this, IntentListener.class));
+        bindService(new Intent(this,IntentListener.class), serviceConnection, Context.BIND_AUTO_CREATE);
     }
 
     class SongItem extends SimpleListAdapter.DataHolder
@@ -198,7 +239,19 @@ public class MainActivity extends BaseActivity
                             adapter.clear();
                             List<Song> list = dao.getAll();
                             for(Song song : list)
+                            {
                                 adapter.add(new SongItem(song));
+                            }
+                            if(arguments.length > 0)
+                            {
+                                getActionBar().setTitle((String)arguments[0]);
+                                getActionBar().setSubtitle(R.string.currently_playing);
+                            }
+                            else
+                            {
+                                getActionBar().setTitle(R.string.app_name);
+                                getActionBar().setSubtitle(null);
+                            }
                             break;
                         }
                         case DELETEALL:
@@ -289,7 +342,7 @@ public class MainActivity extends BaseActivity
                 prefs.edit().putBoolean(getString(R.string.key_permission_message_show),true).apply();
             }
         });
-        dialog.setNeutralButton(R.string.ok,new DialogInterface.OnClickListener(){
+        dialog.setNeutralButton(R.string.not_now,new DialogInterface.OnClickListener(){
             @Override public void onClick(DialogInterface dialogInterface,int i)
             {
 

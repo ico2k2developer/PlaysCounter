@@ -18,6 +18,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
+import static it.developing.ico2k2.playscounter.IntentListener.ACTION_PLAYSTATE_CHANGED;
 import static it.developing.ico2k2.playscounter.IntentListener.EXTRA_ARTIST;
 import static it.developing.ico2k2.playscounter.IntentListener.EXTRA_PLAYING;
 import static it.developing.ico2k2.playscounter.IntentListener.EXTRA_TITLE;
@@ -77,18 +78,24 @@ public class NotificationListener extends NotificationListenerService
     public void onNotificationPosted(StatusBarNotification sbn) {
         if(packages.contains(sbn.getPackageName()))
         {
-            Log.d(getClass().getSimpleName(),Utils.examine(sbn.getNotification().extras));
-            Log.d(getClass().getSimpleName(),Utils.examine(sbn.getNotification().actions));
-            Intent i = new Intent(this,IntentListener.class);
-            Object o = sbn.getNotification().extras.get("android.title");
-            if(o != null)
-                i.putExtra(EXTRA_TITLE,o.toString());
-            o = sbn.getNotification().extras.get("android.text");
-            if(o != null)
-                i.putExtra(EXTRA_ARTIST,o.toString());
+            //Log.d(getClass().getSimpleName(),Utils.examine(sbn.getNotification().extras));
+            //Log.d(getClass().getSimpleName(),Utils.examine(sbn.getNotification().actions));
+            Log.d(getClass().getSimpleName(),getSongTitle(sbn) + ", " + getSongArtist(sbn) +  ", playing? " + getPlaying(sbn.getPackageName(),sbn.getNotification()));
+            Intent i = new Intent(ACTION_PLAYSTATE_CHANGED);
+            i.putExtra(EXTRA_TITLE,getSongTitle(sbn));
+            i.putExtra(EXTRA_ARTIST,getSongArtist(sbn));
             i.putExtra(EXTRA_PLAYING,getPlaying(sbn.getPackageName(),sbn.getNotification()));
             sendBroadcast(i);
         }
+    }
+
+    private String getSongTitle(StatusBarNotification notification)
+    {
+        return notification.getNotification().extras.getString("android.title",null);
+    }
+    private String getSongArtist(StatusBarNotification notification)
+    {
+        return notification.getNotification().extras.getString("android.text",null);
     }
 
     private static final int PLAY_SAMSUNG = 2131230952;

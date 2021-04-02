@@ -10,10 +10,11 @@
 	<string name="notification_foreground_desc">Stiamo controllando quali canzoni ascolti di più!</string>
 	<string name="notification_foreground_act_close">Termina</string>
 	<string name="main_notification_channel">Notifiche background</string>
-	<string name="permission_notification_message">Alcune app multimediali rendono necessario l\'accesso alle notifiche per quest\'app per poter identificare le canzoni riprodotte. Vuoi andare nelle Impostazioni?</string>
+	<string name="permission_notification_message">Alcune app multimediali rendono necessario l\'accesso alle notifiche per quest\'app per poter identificare le canzoni riprodotte, altrimenti il rilevamento potrebbe essere inefficace. Vuoi andare nelle Impostazioni?</string>
 	<string name="permission_notification_menu">Dai permesso</string>
 	<string name="permission_notification_show_settings">Impostazioni</string>
 	<string name="show_never_again">Non mostrare più</string>
+	<string name="not_now">Non ora</string>
 	<string name="ok">OK</string>
 	<string name="cancel">Annulla</string>
 	<string name="db_clear_message">Vuoi cancellare il database degli ascolti delle canzoni?</string>

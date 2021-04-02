@@ -72,7 +72,7 @@ public class SimpleListAdapter extends BaseAdapter
     private final int title;
     private final int subtitle;
     private final int icon;
-    private boolean showSubtitle;
+    private boolean showSubtitle,multiLineSubtitle;
 
     public SimpleListAdapter(Activity activity,int capacity,@LayoutRes int layout,@IdRes int title,@IdRes int subtitle,@IdRes int icon)
     {
@@ -83,6 +83,7 @@ public class SimpleListAdapter extends BaseAdapter
         this.subtitle = subtitle;
         this.icon = icon;
         showSubtitle = subtitle != 0;
+        multiLineSubtitle = false;
         if(capacity > 0)
         {
             data = new ArrayList<>(capacity);
@@ -118,6 +119,16 @@ public class SimpleListAdapter extends BaseAdapter
     public boolean getShowSubtitle()
     {
         return showSubtitle;
+    }
+
+    public void setMultiLineSubtitle(boolean multiLine)
+    {
+        multiLineSubtitle = multiLine;
+    }
+
+    public boolean getMultiLineSubtitle()
+    {
+        return multiLineSubtitle;
     }
 
     public void add(String title,String subtitle)
@@ -217,7 +228,7 @@ public class SimpleListAdapter extends BaseAdapter
         TextView txt = (TextView)convertView.findViewById(title);
         if(txt != null)
             txt.setText(data.getItemTitle());
-        if(showSubtitle)
+        if(getShowSubtitle())
         {
             txt = (TextView)convertView.findViewById(subtitle);
             if(txt != null)
@@ -226,6 +237,7 @@ public class SimpleListAdapter extends BaseAdapter
                 {
                     txt.setText(data.getItemSubtitle());
                     txt.setVisibility(View.VISIBLE);
+                    txt.setSingleLine(!getMultiLineSubtitle());
                 }
                 else
                     txt.setVisibility(View.GONE);

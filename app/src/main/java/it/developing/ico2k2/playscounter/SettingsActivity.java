@@ -33,23 +33,14 @@ import androidx.fragment.app.FragmentFactory;
 import androidx.fragment.app.FragmentTransaction;
 import androidx.preference.Preference;
 import androidx.preference.PreferenceFragmentCompat;
-import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
 import java.util.ArrayList;
 import java.util.Arrays;
 
-import it.developing.ico2k2.luckyplayer.R;
-import it.developing.ico2k2.luckyplayer.Utils;
-import it.developing.ico2k2.luckyplayer.activities.base.BaseActivity;
-import it.developing.ico2k2.luckyplayer.dialogs.ConfirmDialog;
-import it.developing.ico2k2.luckyplayer.dialogs.DefaultDialog;
-
-import static it.developing.ico2k2.luckyplayer.Utils.adapterMapsFromAdapterList;
-
 public class SettingsActivity extends BaseActivity
 {
-    public static final String ARGUMENT_PREFERENCE = "preference";
+    /*public static final String ARGUMENT_PREFERENCE = "preference";
     public static final String ARGUMENT_INDEX = "index";
     public static final String LICENSE_APACHE_2_0 = "apache 2.0";
 
@@ -724,5 +715,5 @@ public class SettingsActivity extends BaseActivity
             setPreferenceScreen(getPreferenceScreen());
         }
 
-    }
+    }*/
 }
