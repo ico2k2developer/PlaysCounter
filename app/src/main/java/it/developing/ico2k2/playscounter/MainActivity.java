@@ -55,7 +55,7 @@ public class MainActivity extends BaseActivity
                     new Handler(Looper.getMainLooper()).post(new Runnable() {
                         @Override
                         public void run() {
-                            databaseUpdate(UpdateType.REFRESH,currentSongId);
+                            update(currentSongId);
                         }
                     });
                 }
@@ -224,6 +224,41 @@ public class MainActivity extends BaseActivity
         DELETEALL,
     }
 
+    private void update()
+    {
+        if(service != null)
+            service.askUpdate();
+        else
+            databaseUpdate(UpdateType.REFRESH);
+    }
+
+    private void update(@Nullable String currentSongId)
+    {
+        databaseUpdate(UpdateType.REFRESH,currentSongId);
+    }
+
+    private void resetTitleSubtitle()
+    {
+        new Handler(Looper.getMainLooper()).post(new Runnable() {
+            @Override
+            public void run() {
+                getActionBar().setTitle(R.string.app_name);
+                getActionBar().setSubtitle(null);
+            }
+        });
+    }
+
+    private void setTitleSubtitle(CharSequence title,CharSequence subtitle)
+    {
+        new Handler(Looper.getMainLooper()).post(new Runnable() {
+            @Override
+            public void run() {
+                getActionBar().setTitle(title);
+                getActionBar().setSubtitle(subtitle);
+            }
+        });
+    }
+
     private void databaseUpdate(UpdateType type,Object ... arguments)
     {
         synchronized(adapter)
@@ -238,19 +273,37 @@ public class MainActivity extends BaseActivity
                         {
                             adapter.clear();
                             List<Song> list = dao.getAll();
-                            for(Song song : list)
-                            {
-                                adapter.add(new SongItem(song));
-                            }
                             if(arguments.length > 0)
                             {
-                                getActionBar().setTitle((String)arguments[0]);
-                                getActionBar().setSubtitle(R.string.currently_playing);
+                                if(arguments[0] == null)
+                                {
+                                    for(Song song : list)
+                                    {
+                                        adapter.add(new SongItem(song));
+                                    }
+                                    resetTitleSubtitle();
+                                }
+                                else
+                                {
+                                    String title = null;
+                                    for(Song song : list)
+                                    {
+                                        adapter.add(new SongItem(song));
+                                        if(song.getId().equals((String)arguments[0]))
+                                            title = song.getTitle();
+                                    }
+                                    if(title == null)
+                                        resetTitleSubtitle();
+                                    else
+                                        setTitleSubtitle(title,getString(R.string.currently_playing));
+                                }
                             }
                             else
                             {
-                                getActionBar().setTitle(R.string.app_name);
-                                getActionBar().setSubtitle(null);
+                                for(Song song : list)
+                                {
+                                    adapter.add(new SongItem(song));
+                                }
                             }
                             break;
                         }
@@ -318,7 +371,7 @@ public class MainActivity extends BaseActivity
     {
         super.onResume();
         BootListener.startServices(this);
-        databaseUpdate(UpdateType.REFRESH);
+        update();
         checkMenu();
     }
 
@@ -401,7 +454,7 @@ public class MainActivity extends BaseActivity
         {
             case R.id.menu_update:
             {
-                databaseUpdate(UpdateType.REFRESH);
+                update();
                 break;
             }
             case R.id.menu_clear:

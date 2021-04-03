@@ -16,6 +16,7 @@
     <string name="show_never_again">Show never again</string>
     <string name="not_now">Not now</string>
     <string name="ok">OK</string>
+    <string name="currently_playing">Now playing</string>
     <string name="cancel">Cancel</string>
     <string name="db_clear_message">Do you want to clear the plays count database?</string>
     <string name="item_delete">Delete song plays count</string>

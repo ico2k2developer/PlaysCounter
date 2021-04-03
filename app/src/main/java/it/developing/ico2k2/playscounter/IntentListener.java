@@ -190,6 +190,7 @@ public class IntentListener extends Service
     };
 
     private Receiver receiver;
+    private String lastSongId;
     private Database database;
     private OnUpdateListener listener;
     private final IBinder binder = new LocalBinder();
@@ -197,6 +198,11 @@ public class IntentListener extends Service
     public interface OnUpdateListener
     {
         public void onUpdate(String currentSongId);
+    }
+    protected void askUpdate()
+    {
+        if(listener != null)
+            listener.onUpdate(lastSongId);
     }
 
     protected void setOnUpdateListener(@Nullable OnUpdateListener listener)
@@ -222,6 +228,7 @@ public class IntentListener extends Service
         manageNotification(true);
         database = DatabaseClient.getInstance(this,DATABASE_SONGS);
         receiver = new Receiver();
+        lastSongId = null;
         IntentFilter filter = new IntentFilter();
         for(String action : FILTERS)
             filter.addAction(action);
@@ -247,8 +254,7 @@ public class IntentListener extends Service
         {
             Bundle extras = intent.getExtras();
             Log.d(getClass().getSimpleName(),extras.getString(EXTRA_TITLE,"null") + ", " +
-                    extras.getString(EXTRA_ARTIST,"null") +  ", playing? " +
-                    extras.getBoolean(EXTRA_PLAYING,false));
+                    extras.getString(EXTRA_ARTIST,"null"));
             if(extras.containsKey(EXTRA_ACTION))
             {
                 switch(extras.getByte(EXTRA_ACTION))
@@ -264,7 +270,8 @@ public class IntentListener extends Service
             {
                 String title = extras.getString(EXTRA_TITLE,null);
                 String artist = extras.getString(EXTRA_ARTIST,null);
-                if(title != null && artist != null && extras.getBoolean(EXTRA_PLAYING,false))
+                //if(title != null && artist != null && extras.getBoolean(EXTRA_PLAYING,false))
+                if(title != null && artist != null)
                     updateDatabase(title,artist);
             }
         }
@@ -277,7 +284,7 @@ public class IntentListener extends Service
                 new Thread(new Runnable(){
                     @Override
                     public void run(){
-                        List<Song> results = dao.findById(Song.generateId(title,artist));
+                        List<Song> results = dao.findById(songId);
                         Song song;
                         if(results.size() > 0)
                         {
@@ -286,6 +293,8 @@ public class IntentListener extends Service
                         }
                         else
                             song = new Song(title,artist,0,new Song.Date());
+                        lastSongId = song.getId();
+                        askUpdate();
                         song.setPlaysCount(song.getPlaysCount() + 1);
                         dao.insertAll(song);
                         Log.d(getClass().getSimpleName(),"Saved new play for song " + song.toString());

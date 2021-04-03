@@ -80,11 +80,11 @@ public class NotificationListener extends NotificationListenerService
         {
             //Log.d(getClass().getSimpleName(),Utils.examine(sbn.getNotification().extras));
             //Log.d(getClass().getSimpleName(),Utils.examine(sbn.getNotification().actions));
-            Log.d(getClass().getSimpleName(),getSongTitle(sbn) + ", " + getSongArtist(sbn) +  ", playing? " + getPlaying(sbn.getPackageName(),sbn.getNotification()));
+            Log.d(getClass().getSimpleName(),getSongTitle(sbn) + ", " + getSongArtist(sbn));
             Intent i = new Intent(ACTION_PLAYSTATE_CHANGED);
             i.putExtra(EXTRA_TITLE,getSongTitle(sbn));
             i.putExtra(EXTRA_ARTIST,getSongArtist(sbn));
-            i.putExtra(EXTRA_PLAYING,getPlaying(sbn.getPackageName(),sbn.getNotification()));
+            //i.putExtra(EXTRA_PLAYING,getPlaying(sbn.getPackageName(),sbn.getNotification()));
             sendBroadcast(i);
         }
     }
@@ -98,7 +98,7 @@ public class NotificationListener extends NotificationListenerService
         return notification.getNotification().extras.getString("android.text",null);
     }
 
-    private static final int PLAY_SAMSUNG = 2131230952;
+    /*private static final int PLAY_SAMSUNG = 2131230952;
     private static final int PLAY_SPOTIFY = 2131231605;
 
     private static boolean getPlaying(String packageName,Notification notification)
@@ -118,7 +118,7 @@ public class NotificationListener extends NotificationListenerService
             }
         }
         return result;
-    }
+    }*/
 
     public void onNotificationRemoved(StatusBarNotification sbn) {
 
