@@ -18,6 +18,8 @@
     <string name="ok">OK</string>
     <string name="currently_playing">Now playing</string>
     <string name="cancel">Cancel</string>
+    <string name="item_selected">1 selected</string>
+    <string name="items_selected">%d selected</string>
     <string name="db_clear_message">Do you want to clear the plays count database?</string>
     <string name="item_delete">Delete song plays count</string>
     <string name="list_empty">Empty list</string>

@@ -1,12 +1,20 @@
 package it.developing.ico2k2.playscounter.database;
 
 import android.content.Context;
+import android.content.SharedPreferences;
+
+import androidx.annotation.Nullable;
+import androidx.preference.PreferenceManager;
 import androidx.room.Room;
 import java.util.HashMap;
 import java.util.Map;
 
+import it.developing.ico2k2.playscounter.R;
+
 public class DatabaseClient
 {
+    public static final String DATABASE_SONGS = "songs";
+
     private static final Map<String,DatabaseClient> clients = new HashMap<>();
     private final Database database;
 

@@ -18,6 +18,8 @@
 	<string name="ok">OK</string>
 	<string name="currently_playing">In riproduzione</string>
 	<string name="cancel">Annulla</string>
+	<string name="item_selected">1 selezionate</string>
+	<string name="items_selected">%d selezionate</string>
 	<string name="db_clear_message">Vuoi cancellare il database degli ascolti delle canzoni?</string>
 	<string name="item_delete">Cancella ascolti canzone</string>
 	<string name="list_empty">Lista vuota</string>

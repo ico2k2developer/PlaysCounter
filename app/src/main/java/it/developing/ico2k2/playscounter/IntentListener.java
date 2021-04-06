@@ -14,7 +14,6 @@ import android.os.IBinder;
 import android.util.Log;
 
 import androidx.annotation.Nullable;
-import androidx.annotation.RequiresApi;
 import androidx.preference.PreferenceManager;
 
 import java.util.List;
@@ -26,9 +25,6 @@ import it.developing.ico2k2.playscounter.database.SongDao;
 
 import static it.developing.ico2k2.playscounter.ForegroundNotificationBuilder.ACTION_STOP;
 import static it.developing.ico2k2.playscounter.ForegroundNotificationBuilder.EXTRA_ACTION;
-import static it.developing.ico2k2.playscounter.Utils.DATABASE_SONGS;
-import static it.developing.ico2k2.playscounter.Utils.examineBundle;
-import static it.developing.ico2k2.playscounter.Utils.examineIntent;
 
 public class IntentListener extends Service
 {
@@ -226,7 +222,7 @@ public class IntentListener extends Service
     {
         super.onCreate();
         manageNotification(true);
-        database = DatabaseClient.getInstance(this,DATABASE_SONGS);
+        database = DatabaseClient.getInstance(this,DatabaseClient.DATABASE_SONGS);
         receiver = new Receiver();
         lastSongId = null;
         IntentFilter filter = new IntentFilter();

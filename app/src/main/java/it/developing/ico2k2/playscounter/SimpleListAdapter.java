@@ -2,6 +2,7 @@ package it.developing.ico2k2.playscounter;
 
 import android.app.Activity;
 import android.content.Context;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -10,7 +11,6 @@ import android.widget.TextView;
 
 import androidx.annotation.IdRes;
 import androidx.annotation.LayoutRes;
-import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 
 import java.util.ArrayList;
@@ -58,7 +58,8 @@ public class SimpleListAdapter extends BaseAdapter
             boolean result = false;
             if(o != null)
             {
-                result = id == ((DataHolder)o).id;
+                if(o instanceof DataHolder)
+                    result = id == ((DataHolder)o).id;
             }
             return result;
         }
@@ -145,14 +146,17 @@ public class SimpleListAdapter extends BaseAdapter
     {
         item.id = data.size();
         data.add(item);
-        indexes.add(indexes.size());
+        indexes.add(item.id);
+        printSizes();
     }
 
     public void addAll(Collection<? extends DataHolder> items)
     {
-        data.addAll(items);
+        /*data.addAll(items);
         for(DataHolder ignored: items)
-            indexes.add(indexes.size());
+            indexes.add(indexes.size());*/
+        for(DataHolder d : items)
+            add(d);
     }
 
     public void addAll(DataHolder ... items)
@@ -164,12 +168,20 @@ public class SimpleListAdapter extends BaseAdapter
     {
         data.remove((int)indexes.get(index));
         indexes.remove(index);
+        printSizes();
     }
 
     public void remove(DataHolder item)
     {
-        indexes.remove((Integer)data.indexOf(item));
-        data.remove(item);
+        int index = data.indexOf(item);
+        indexes.remove((Integer)index);
+        data.remove(index);
+        printSizes();
+    }
+
+    private void printSizes()
+    {
+        Log.d(getClass().getSimpleName(),"Data array size is " + data.size() + ", indexes array size is " + indexes.size());
     }
 
     public void clear()
@@ -186,16 +198,14 @@ public class SimpleListAdapter extends BaseAdapter
 
     public void sort(Comparator<Integer> comparator)
     {
+        printSizes();
+        Log.d(getClass().getSimpleName(),Arrays.toString(indexes.toArray()));
         Collections.sort(indexes,comparator);
     }
 
     @Override
     public int getCount(){
         return data.size();
-    }
-
-    public DataHolder getItemById(int id){
-        return getItem(getItemPosition(id));
     }
 
     @Override
@@ -216,7 +226,13 @@ public class SimpleListAdapter extends BaseAdapter
     {
         DataHolder d = new DataHolder();
         d.id = id;
-        return data.indexOf(d);
+        return indexes.indexOf(data.indexOf(d));
+    }
+
+    public DataHolder getItemById(int id){
+        DataHolder d = new DataHolder();
+        d.id = id;
+        return getItem(data.indexOf(d));
     }
 
     @Override
@@ -227,7 +243,7 @@ public class SimpleListAdapter extends BaseAdapter
         DataHolder data = getItem(position);
         TextView txt = (TextView)convertView.findViewById(title);
         if(txt != null)
-            txt.setText(data.getItemTitle());
+            txt.setText(data.id + data.getItemTitle());
         if(getShowSubtitle())
         {
             txt = (TextView)convertView.findViewById(subtitle);

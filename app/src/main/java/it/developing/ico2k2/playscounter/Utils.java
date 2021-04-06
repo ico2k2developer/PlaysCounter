@@ -14,9 +14,14 @@ import java.util.Set;
 
 public class Utils
 {
-    public static final String CHANNEL_ID_MAIN = "main";
+    private static final int KEY_LAST_SONG = R.string.key_song_last;
 
-    public static final String DATABASE_SONGS = "songs";
+    private static final int[] KEYS =
+    {
+        KEY_LAST_SONG,
+    };
+
+    public static final String CHANNEL_ID_MAIN = "main";
 
     public static String examineBundle(Bundle bundle)
     {

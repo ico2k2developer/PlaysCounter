@@ -27,16 +27,18 @@ import androidx.annotation.RequiresApi;
 import androidx.preference.PreferenceManager;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.Comparator;
 import java.util.Date;
 import java.util.List;
+import java.util.Locale;
 
 import it.developing.ico2k2.playscounter.database.Database;
 import it.developing.ico2k2.playscounter.database.DatabaseClient;
 import it.developing.ico2k2.playscounter.database.Song;
 import it.developing.ico2k2.playscounter.database.SongDao;
 
-import static it.developing.ico2k2.playscounter.Utils.DATABASE_SONGS;
+import static it.developing.ico2k2.playscounter.database.DatabaseClient.DATABASE_SONGS;
 
 public class MainActivity extends BaseActivity
 {
@@ -46,7 +48,7 @@ public class MainActivity extends BaseActivity
     private Menu menu;
     IntentListener service = null;
 
-    private ServiceConnection serviceConnection = new ServiceConnection() {
+    private final ServiceConnection serviceConnection = new ServiceConnection() {
         @Override
         public void onServiceConnected(ComponentName componentName, IBinder iBinder) {
             ((IntentListener.LocalBinder)iBinder).getService().setOnUpdateListener(new IntentListener.OnUpdateListener() {
@@ -72,7 +74,8 @@ public class MainActivity extends BaseActivity
     @Override
     protected void onDestroy() {
         super.onDestroy();
-        service.setOnUpdateListener(null);
+        if(service != null)
+            service.setOnUpdateListener(null);
         unbindService(serviceConnection);
     }
 
@@ -83,8 +86,9 @@ public class MainActivity extends BaseActivity
         list = new ListView(this);
         list.setLayoutParams(new ViewGroup.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT,ViewGroup.LayoutParams.MATCH_PARENT));
         setContentView(list);
+        //list.setSelector(R.color.colorPrimaryDark);
         adapter = new SimpleListAdapter(MainActivity.this,
-                android.R.layout.simple_list_item_2,
+                android.R.layout.simple_list_item_activated_2,
                 android.R.id.text1,
                 android.R.id.text2);
         adapter.setMultiLineSubtitle(true);
@@ -96,8 +100,14 @@ public class MainActivity extends BaseActivity
             @Override
             public void onItemCheckedStateChanged(ActionMode mode,int position,long id,boolean checked)
             {
-                Log.d(getClass().getSimpleName(),"Position " + position + ", checked? " + checked);
-                ids.add((int)id);
+                if(list.getCheckedItemCount() > 1)
+                    mode.setTitle(String.format(Locale.getDefault(),getString(R.string.items_selected),list.getCheckedItemCount()));
+                else
+                    mode.setTitle(R.string.item_selected);
+                if(checked)
+                    ids.add((Integer)(int)id);
+                else
+                    ids.remove((Integer)(int)id);
             }
 
             @Override
@@ -120,7 +130,8 @@ public class MainActivity extends BaseActivity
                 {
                     case R.id.menu_delete:
                     {
-                        databaseUpdate(UpdateType.DELETE,ids.toArray());
+                        databaseUpdate(UpdateType.DELETE, ids.toArray());
+                        mode.finish();
                         break;
                     }
                     default:
@@ -133,6 +144,7 @@ public class MainActivity extends BaseActivity
 
             @Override
             public void onDestroyActionMode(ActionMode mode){
+                Log.d(MainActivity.class.getSimpleName(),"List: onDestroyActionMode");
 
             }
         });
@@ -185,6 +197,11 @@ public class MainActivity extends BaseActivity
         public SongItem(String title,String artist)
         {
             this(title,artist,0);
+        }
+
+        public String generateId()
+        {
+            return Song.generateId(getTitle(),getArtist());
         }
 
         @Override
@@ -311,16 +328,27 @@ public class MainActivity extends BaseActivity
                         {
                             adapter.clear();
                             database.dao().deleteAll();
+                            PreferenceManager.getDefaultSharedPreferences(MainActivity.this).edit()
+                                    .remove(getString(R.string.key_song_last)).apply();
                             break;
                         }
                         case DELETE:
                         {
                             SongItem item;
-                            for(int id : ((Integer[])arguments[0]))
+                            for(Object o : arguments)
                             {
-                                item = (SongItem)adapter.getItemById(id);
-                                adapter.remove(item);
-                                dao.delete(Song.generateId(item.getTitle(),item.getArtist()));
+                                if(o instanceof Integer)
+                                {
+                                    Log.d(MainActivity.class.getSimpleName(),
+                                            "Looking for item " + ((Integer)o));
+                                    item = (SongItem)adapter.getItemById((Integer)o);
+                                    Log.d(MainActivity.class.getSimpleName(),
+                                            "Found item " + item.getTitle());
+                                    adapter.remove(item);
+                                    dao.delete(item.generateId());
+                                }
+                                else
+                                    break;
                             }
                             break;
                         }
@@ -329,7 +357,13 @@ public class MainActivity extends BaseActivity
                         adapter.sort(new Comparator<Integer>(){
                             @Override public int compare(Integer i1,Integer i2)
                             {
-                                return ((SongItem)adapter.getRealItem(i2)).getPlaysCount() - ((SongItem)adapter.getRealItem(i1)).getPlaysCount();
+                                Log.d(MainActivity.class.getSimpleName(),
+                                        "Confronting item " + i1 + " with item " + i2);
+                                Log.d(MainActivity.class.getSimpleName(),
+                                        "Confronting item " +
+                                        adapter.getRealItem(i1).getItemTitle() + " with item " +
+                                        adapter.getRealItem(i2).getItemTitle());
+                                return ((SongItem)adapter.getItem(i2)).getPlaysCount() - ((SongItem)adapter.getItem(i1)).getPlaysCount();
                             }
                         });
                     MainActivity.this.list.post(new Runnable(){
