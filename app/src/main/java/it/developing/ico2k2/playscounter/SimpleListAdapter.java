@@ -166,17 +166,35 @@ public class SimpleListAdapter extends BaseAdapter
 
     public void remove(int index)
     {
-        data.remove((int)indexes.get(index));
+        int i;
+        i = indexes.get(index);
         indexes.remove(index);
+        index = i;
+        for(i = 0; i < indexes.size(); i++)
+        {
+            if(indexes.get(i) > index)
+                indexes.set(i,indexes.get(i) - 1);
+        }
+        data.remove(index);
         printSizes();
+        printIndexes();
     }
 
     public void remove(DataHolder item)
     {
-        int index = data.indexOf(item);
+        int i,index = data.indexOf(item);
         indexes.remove((Integer)index);
+        for(i = 0; i < indexes.size(); i++)
+        {
+            if(indexes.get(i) > index)
+                indexes.set(i,indexes.get(i) - 1);
+        }
         data.remove(index);
-        printSizes();
+    }
+
+    private void printIndexes()
+    {
+        Log.d(getClass().getSimpleName(),Arrays.toString(indexes.toArray()));
     }
 
     private void printSizes()
@@ -198,8 +216,8 @@ public class SimpleListAdapter extends BaseAdapter
 
     public void sort(Comparator<Integer> comparator)
     {
+        printIndexes();
         printSizes();
-        Log.d(getClass().getSimpleName(),Arrays.toString(indexes.toArray()));
         Collections.sort(indexes,comparator);
     }
 
@@ -222,7 +240,7 @@ public class SimpleListAdapter extends BaseAdapter
         return getItem(position).id;
     }
 
-    public int getItemPosition(int id)
+    public int getIndexById(int id)
     {
         DataHolder d = new DataHolder();
         d.id = id;
@@ -238,12 +256,13 @@ public class SimpleListAdapter extends BaseAdapter
     @Override
     public View getView(int position,View convertView,ViewGroup parent)
     {
+        Log.d(getClass().getSimpleName(),"Preparing view at position " + (position + 1) + " of " + getCount());
         if(convertView == null)
             convertView = inflater.inflate(layout,parent,false);
         DataHolder data = getItem(position);
         TextView txt = (TextView)convertView.findViewById(title);
         if(txt != null)
-            txt.setText(data.id + data.getItemTitle());
+            txt.setText(data.getItemTitle());
         if(getShowSubtitle())
         {
             txt = (TextView)convertView.findViewById(subtitle);
@@ -260,5 +279,14 @@ public class SimpleListAdapter extends BaseAdapter
             }
         }
         return convertView;
+    }
+
+    @Override
+    public void notifyDataSetChanged()
+    {
+        Log.d(getClass().getSimpleName(),"Notified changed data!");
+        printSizes();
+        printIndexes();
+        super.notifyDataSetChanged();
     }
 }

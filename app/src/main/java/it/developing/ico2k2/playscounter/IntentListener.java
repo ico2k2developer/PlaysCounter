@@ -195,7 +195,7 @@ public class IntentListener extends Service
     {
         public void onUpdate(String currentSongId);
     }
-    protected void askUpdate()
+    protected void sendUpdate()
     {
         if(listener != null)
             listener.onUpdate(lastSongId);
@@ -290,7 +290,7 @@ public class IntentListener extends Service
                         else
                             song = new Song(title,artist,0,new Song.Date());
                         lastSongId = song.getId();
-                        askUpdate();
+                        sendUpdate();
                         song.setPlaysCount(song.getPlaysCount() + 1);
                         dao.insertAll(song);
                         Log.d(getClass().getSimpleName(),"Saved new play for song " + song.toString());

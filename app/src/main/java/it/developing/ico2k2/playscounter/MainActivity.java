@@ -27,7 +27,6 @@ import androidx.annotation.RequiresApi;
 import androidx.preference.PreferenceManager;
 
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.Comparator;
 import java.util.Date;
 import java.util.List;
@@ -54,15 +53,9 @@ public class MainActivity extends BaseActivity
             ((IntentListener.LocalBinder)iBinder).getService().setOnUpdateListener(new IntentListener.OnUpdateListener() {
                 @Override
                 public void onUpdate(String currentSongId) {
-                    new Handler(Looper.getMainLooper()).post(new Runnable() {
-                        @Override
-                        public void run() {
-                            update(currentSongId);
-                        }
-                    });
+                    update(currentSongId);
                 }
             });
-            // now you have the instance of service.
         }
 
         @Override
@@ -70,14 +63,6 @@ public class MainActivity extends BaseActivity
             service = null;
         }
     };
-
-    @Override
-    protected void onDestroy() {
-        super.onDestroy();
-        if(service != null)
-            service.setOnUpdateListener(null);
-        unbindService(serviceConnection);
-    }
 
     @Override
     public void onCreate(Bundle savedInstanceState)
@@ -108,6 +93,7 @@ public class MainActivity extends BaseActivity
                     ids.add((Integer)(int)id);
                 else
                     ids.remove((Integer)(int)id);
+                Log.d(MainActivity.class.getSimpleName(),"Selected item with id " + id + ": " + adapter.getItemById((int)id).getItemTitle());
             }
 
             @Override
@@ -128,6 +114,24 @@ public class MainActivity extends BaseActivity
                 boolean result = true;
                 switch(item.getItemId())
                 {
+                    case R.id.menu_select_all:
+                    {
+                        int i;
+                        /*boolean allChecked = true;
+                        for(i = 0; i < adapter.getCount(); i++)
+                        {
+                            if(!list.isItemChecked(i))
+                            {
+                                allChecked = false;
+                                break;
+                            }
+                        }
+                        for(i = 0; i < adapter.getCount(); i++)
+                            list.setItemChecked(i,!allChecked);*/
+                        for(i = 0; i < adapter.getCount(); i++)
+                            list.setItemChecked(i,true);
+                        break;
+                    }
                     case R.id.menu_delete:
                     {
                         databaseUpdate(UpdateType.DELETE, ids.toArray());
@@ -144,7 +148,6 @@ public class MainActivity extends BaseActivity
 
             @Override
             public void onDestroyActionMode(ActionMode mode){
-                Log.d(MainActivity.class.getSimpleName(),"List: onDestroyActionMode");
 
             }
         });
@@ -158,9 +161,22 @@ public class MainActivity extends BaseActivity
                     !prefs.getBoolean(getString(R.string.key_permission_message_show),false))
                 showSettingsPage(prefs);
         }
+    }
 
+    @Override
+    public void onStart()
+    {
+        super.onStart();
         startService(new Intent(this, IntentListener.class));
         bindService(new Intent(this,IntentListener.class), serviceConnection, Context.BIND_AUTO_CREATE);
+    }
+
+    @Override
+    public void onStop() {
+        super.onStop();
+        if(service != null)
+            service.setOnUpdateListener(null);
+        unbindService(serviceConnection);
     }
 
     class SongItem extends SimpleListAdapter.DataHolder
@@ -244,7 +260,7 @@ public class MainActivity extends BaseActivity
     private void update()
     {
         if(service != null)
-            service.askUpdate();
+            service.sendUpdate();
         else
             databaseUpdate(UpdateType.REFRESH);
     }
@@ -276,106 +292,134 @@ public class MainActivity extends BaseActivity
         });
     }
 
-    private void databaseUpdate(UpdateType type,Object ... arguments)
+
+    private void databaseUpdate(UpdateType type,final Object ... arguments)
     {
-        synchronized(adapter)
-        {
-            new Thread(new Runnable(){
-                @Override
-                public void run(){
-                    SongDao dao = database.dao();
-                    switch(type)
+        Log.d(getClass().getSimpleName(),"Asked database update: " + type.name());
+        new Thread(new Runnable() {
+            @Override
+            public void run() {
+                SongDao dao = database.dao();
+                Log.d(getClass().getSimpleName(),"Executing database update: " + type.name());
+                switch(type)
+                {
+                    case REFRESH:
                     {
-                        case REFRESH:
-                        {
-                            adapter.clear();
-                            List<Song> list = dao.getAll();
-                            if(arguments.length > 0)
-                            {
-                                if(arguments[0] == null)
+                        final List<Song> list = dao.getAll();
+                        MainActivity.this.list.post(new Runnable() {
+                            @Override
+                            public void run() {
+                                adapter.clear();
+                                if(arguments.length > 0)
                                 {
-                                    for(Song song : list)
+                                    if(arguments[0] == null)
                                     {
-                                        adapter.add(new SongItem(song));
-                                    }
-                                    resetTitleSubtitle();
-                                }
-                                else
-                                {
-                                    String title = null;
-                                    for(Song song : list)
-                                    {
-                                        adapter.add(new SongItem(song));
-                                        if(song.getId().equals((String)arguments[0]))
-                                            title = song.getTitle();
-                                    }
-                                    if(title == null)
+                                        for(Song song : list)
+                                        {
+                                            adapter.add(new SongItem(song));
+                                        }
                                         resetTitleSubtitle();
+                                    }
                                     else
-                                        setTitleSubtitle(title,getString(R.string.currently_playing));
-                                }
-                            }
-                            else
-                            {
-                                for(Song song : list)
-                                {
-                                    adapter.add(new SongItem(song));
-                                }
-                            }
-                            break;
-                        }
-                        case DELETEALL:
-                        {
-                            adapter.clear();
-                            database.dao().deleteAll();
-                            PreferenceManager.getDefaultSharedPreferences(MainActivity.this).edit()
-                                    .remove(getString(R.string.key_song_last)).apply();
-                            break;
-                        }
-                        case DELETE:
-                        {
-                            SongItem item;
-                            for(Object o : arguments)
-                            {
-                                if(o instanceof Integer)
-                                {
-                                    Log.d(MainActivity.class.getSimpleName(),
-                                            "Looking for item " + ((Integer)o));
-                                    item = (SongItem)adapter.getItemById((Integer)o);
-                                    Log.d(MainActivity.class.getSimpleName(),
-                                            "Found item " + item.getTitle());
-                                    adapter.remove(item);
-                                    dao.delete(item.generateId());
+                                    {
+                                        String title = null;
+                                        for(Song song : list)
+                                        {
+                                            adapter.add(new SongItem(song));
+                                            if(song.getId().equals(arguments[0]))
+                                                title = song.getTitle();
+                                        }
+                                        if(title == null)
+                                            resetTitleSubtitle();
+                                        else
+                                            setTitleSubtitle(title,getString(R.string.currently_playing));
+                                    }
                                 }
                                 else
-                                    break;
-                            }
-                            break;
-                        }
-                    }
-                    if(!adapter.isEmpty())
-                        adapter.sort(new Comparator<Integer>(){
-                            @Override public int compare(Integer i1,Integer i2)
-                            {
-                                Log.d(MainActivity.class.getSimpleName(),
-                                        "Confronting item " + i1 + " with item " + i2);
-                                Log.d(MainActivity.class.getSimpleName(),
-                                        "Confronting item " +
-                                        adapter.getRealItem(i1).getItemTitle() + " with item " +
-                                        adapter.getRealItem(i2).getItemTitle());
-                                return ((SongItem)adapter.getItem(i2)).getPlaysCount() - ((SongItem)adapter.getItem(i1)).getPlaysCount();
+                                {
+                                    for(Song song : list)
+                                    {
+                                        adapter.add(new SongItem(song));
+                                    }
+                                }
                             }
                         });
-                    MainActivity.this.list.post(new Runnable(){
-                        @Override
-                        public void run(){
-                            adapter.notifyDataSetChanged();
-                        }
-                    });
-
+                        break;
+                    }
+                    case DELETEALL:
+                    {
+                        dao.deleteAll();
+                        PreferenceManager.getDefaultSharedPreferences(MainActivity.this)
+                                .edit().remove(getString(R.string.key_song_last)).apply();
+                        MainActivity.this.list.post(new Runnable() {
+                            @Override
+                            public void run() {
+                                adapter.clear();
+                            }
+                        });
+                        break;
+                    }
+                    case DELETE:
+                    {
+                        MainActivity.this.list.post(new Runnable() {
+                            @Override
+                            public void run() {
+                                int position;
+                                for(Object o : arguments)
+                                {
+                                    if(o instanceof Integer)
+                                    {
+                                        position = adapter.getIndexById((Integer)o);
+                                        Log.d(MainActivity.class.getSimpleName(),
+                                                "Looking for item with id " + ((Integer)o) + " (position " + position + ")");
+                                        if(position >= 0)
+                                        {
+                                            Log.d(MainActivity.class.getSimpleName(),
+                                                    "Found item " + adapter.getItem(position).getItemTitle());
+                                            final String songId = ((SongItem)adapter.getItem(position)).generateId();
+                                            adapter.remove(position);
+                                            new Thread(new Runnable() {
+                                                @Override
+                                                public void run() {
+                                                    dao.delete(songId);
+                                                }
+                                            }).start();
+                                        }
+                                        else
+                                            Log.d(MainActivity.class.getSimpleName(),
+                                                    "Item not found");
+                                    }
+                                    else
+                                        break;
+                                }
+                            }
+                        });
+                        break;
+                    }
                 }
-            }).start();
-        }
+                list.post(new Runnable() {
+                    @Override
+                    public void run() {
+                        if(!adapter.isEmpty())
+                        {
+                            adapter.sort(new Comparator<Integer>(){
+                                @Override public int compare(Integer i1,Integer i2)
+                                {
+                                    Log.d(MainActivity.class.getSimpleName(),
+                                            "Confronting item " + i1 + " with item " + i2);
+                                    Log.d(MainActivity.class.getSimpleName(),
+                                            "Confronting item " +
+                                                    adapter.getRealItem(i1).getItemTitle() + " with item " +
+                                                    adapter.getRealItem(i2).getItemTitle());
+                                    return ((SongItem)adapter.getRealItem(i2)).getPlaysCount() - ((SongItem)adapter.getRealItem(i1)).getPlaysCount();
+                                }
+                            });
+                        }
+                        adapter.notifyDataSetChanged();
+                    }
+                });
+            }
+        }).start();
     }
 
     private void clear()

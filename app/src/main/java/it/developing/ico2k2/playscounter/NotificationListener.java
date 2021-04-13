@@ -10,6 +10,7 @@ import android.os.IBinder;
 import android.provider.Settings;
 import android.service.notification.NotificationListenerService;
 import android.service.notification.StatusBarNotification;
+import android.text.SpannableString;
 import android.util.Log;
 
 import androidx.annotation.RequiresApi;
@@ -78,8 +79,8 @@ public class NotificationListener extends NotificationListenerService
     public void onNotificationPosted(StatusBarNotification sbn) {
         if(packages.contains(sbn.getPackageName()))
         {
-            //Log.d(getClass().getSimpleName(),Utils.examine(sbn.getNotification().extras));
-            //Log.d(getClass().getSimpleName(),Utils.examine(sbn.getNotification().actions));
+            Log.d(getClass().getSimpleName(),Utils.examine(sbn.getNotification().extras));
+            Log.d(getClass().getSimpleName(),Utils.examine(sbn.getNotification().actions));
             Log.d(getClass().getSimpleName(),getSongTitle(sbn) + ", " + getSongArtist(sbn));
             Intent i = new Intent(ACTION_PLAYSTATE_CHANGED);
             i.putExtra(EXTRA_TITLE,getSongTitle(sbn));
@@ -91,11 +92,11 @@ public class NotificationListener extends NotificationListenerService
 
     private String getSongTitle(StatusBarNotification notification)
     {
-        return notification.getNotification().extras.getString("android.title",null);
+        return notification.getNotification().extras.get("android.title").toString();
     }
     private String getSongArtist(StatusBarNotification notification)
     {
-        return notification.getNotification().extras.getString("android.text",null);
+        return notification.getNotification().extras.get("android.text").toString();
     }
 
     /*private static final int PLAY_SAMSUNG = 2131230952;

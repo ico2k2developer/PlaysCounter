@@ -20,7 +20,9 @@ public class DatabaseClient
 
     private DatabaseClient(Context context,String name)
     {
-        database = Room.databaseBuilder(context, Database.class, name).build();
+        database = Room.databaseBuilder(context, Database.class, name)
+                .fallbackToDestructiveMigrationFrom()
+                .build();
     }
 
     public static synchronized Database getInstance(Context context,String name)
